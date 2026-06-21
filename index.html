@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flashcards — Droit de l'entreprise</title>
+<style>
+  :root{
+    --bg0:#0b1020; --bg1:#0f152b; --panel:rgba(255,255,255,.04); --panel-solid:#151d36;
+    --panel2:rgba(255,255,255,.06); --stroke:rgba(255,255,255,.09); --stroke2:rgba(255,255,255,.14);
+    --txt:#eef2fb; --muted:#9aa6c2; --faint:#6b779a;
+    --accent:#7c83ff; --accent2:#a855f7; --accent-soft:rgba(124,131,255,.14);
+    --ok:#22c79a; --ok-soft:rgba(34,199,154,.14);
+    --warn:#fbbf24; --warn-soft:rgba(251,191,36,.14);
+    --bad:#fb6f84; --bad-soft:rgba(251,111,132,.14);
+    --radius:20px; --shadow:0 20px 60px -15px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+    color:var(--txt);min-height:100vh;padding:24px 18px 60px;
+    background:
+      radial-gradient(1200px 700px at 12% -8%, rgba(124,131,255,.20), transparent 60%),
+      radial-gradient(1000px 700px at 95% 0%, rgba(168,85,247,.18), transparent 55%),
+      linear-gradient(170deg,var(--bg0),var(--bg1));
+    background-attachment:fixed;
+  }
+  .wrap{max-width:880px;margin:0 auto}
+  ::selection{background:rgba(124,131,255,.35)}
+
+  /* ---------- Header ---------- */
+  header{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:22px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .logo{width:46px;height:46px;border-radius:14px;display:grid;place-items:center;font-size:22px;
+    background:linear-gradient(140deg,var(--accent),var(--accent2));box-shadow:0 8px 24px -6px rgba(124,131,255,.6)}
+  h1{font-size:21px;font-weight:800;letter-spacing:-.6px;line-height:1.1}
+  .sub{color:var(--muted);font-size:12.5px;margin-top:3px}
+  .ghost{background:var(--panel);border:1px solid var(--stroke);color:var(--muted);
+    border-radius:11px;padding:9px 13px;font-size:13px;cursor:pointer;transition:.15s;font-family:inherit}
+  .ghost:hover{border-color:var(--stroke2);color:var(--txt)}
+
+  /* ---------- Cards / panels ---------- */
+  .panel{background:var(--panel);border:1px solid var(--stroke);border-radius:var(--radius);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+
+  /* ---------- Dashboard ---------- */
+  .dash{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;padding:22px;margin-bottom:18px}
+  .ring{position:relative;width:118px;height:118px;flex-shrink:0}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .val b{font-size:27px;font-weight:800;letter-spacing:-1px}
+  .ring .val span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-top:1px}
+  .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .chip{background:var(--panel2);border:1px solid var(--stroke);border-radius:14px;padding:13px 14px}
+  .chip b{font-size:22px;font-weight:800;display:block;letter-spacing:-.5px}
+  .chip small{font-size:11.5px;color:var(--muted);display:block;margin-top:2px}
+  .chip.ok b{color:var(--ok)} .chip.bad b{color:var(--bad)} .chip.seen b{color:var(--accent)}
+
+  /* ---------- Mode grid ---------- */
+  .section-title{font-size:12.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+    color:var(--faint);margin:24px 4px 12px}
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .mode{position:relative;text-align:left;padding:18px;border-radius:16px;cursor:pointer;overflow:hidden;
+    background:var(--panel);border:1px solid var(--stroke);transition:.18s;font-family:inherit;color:var(--txt)}
+  .mode:hover{transform:translateY(-2px);border-color:var(--stroke2);box-shadow:var(--shadow)}
+  .mode .ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-size:20px;margin-bottom:12px}
+  .mode h3{font-size:15.5px;font-weight:700;margin-bottom:4px}
+  .mode p{font-size:12.5px;color:var(--muted);line-height:1.45}
+  .mode .badge{position:absolute;top:14px;right:14px;font-size:10px;font-weight:700;letter-spacing:.4px;
+    text-transform:uppercase;padding:3px 8px;border-radius:99px;background:var(--accent-soft);color:#c7caff;
+    border:1px solid rgba(124,131,255,.35)}
+  .mode.smart{background:linear-gradient(150deg,rgba(124,131,255,.16),rgba(168,85,247,.10));border-color:rgba(124,131,255,.3)}
+  .ic.i1{background:var(--accent-soft);color:#c7caff}
+  .ic.i2{background:rgba(168,85,247,.14);color:#e3c4ff}
+  .ic.i3{background:var(--bad-soft);color:#ffc0cb}
+  .ic.i4{background:var(--warn-soft);color:#ffe08a}
+
+  /* ---------- Section picker ---------- */
+  .picker{display:flex;gap:10px;align-items:center;padding:14px;margin-top:16px;flex-wrap:wrap}
+  .picker label{font-size:12px;color:var(--muted);font-weight:600}
+  select{font-family:inherit;font-size:14px;border-radius:11px;border:1px solid var(--stroke);
+    background:var(--panel-solid);color:var(--txt);padding:10px 13px;cursor:pointer;flex:1;min-width:200px;transition:.15s}
+  select:hover{border-color:var(--stroke2)}
+  .toggle{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none}
+  .toggle input{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+
+  /* ---------- Per-titre mastery ---------- */
+  .mastery{padding:6px 4px}
+  .mrow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px 12px;border-radius:10px}
+  .mrow:hover{background:var(--panel2)}
+  .mrow .nm{font-size:13px;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mrow .meta{display:flex;align-items:center;gap:10px}
+  .mini{width:120px;height:7px;border-radius:99px;background:var(--panel2);overflow:hidden}
+  .mini>div{height:100%;background:linear-gradient(90deg,var(--ok),#34d3a6);border-radius:99px;transition:width .4s}
+  .mpct{font-size:11.5px;color:var(--muted);width:34px;text-align:right}
+
+  /* ---------- Study view ---------- */
+  #study{display:none}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .topbar .info{font-size:13px;color:var(--muted)}
+  .topbar .info b{color:var(--txt)}
+  .progress{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);margin-bottom:7px}
+  .bar{height:7px;background:var(--panel2);border:1px solid var(--stroke);border-radius:99px;overflow:hidden;margin-bottom:18px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0;transition:width .35s;border-radius:99px}
+
+  .scene{perspective:1800px;margin-bottom:16px}
+  .card{position:relative;width:100%;min-height:360px;cursor:pointer;transform-style:preserve-3d;
+    transition:transform .55s cubic-bezier(.3,.7,.2,1)}
+  .card.flipped{transform:rotateY(180deg)}
+  .face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    border-radius:var(--radius);padding:30px;display:flex;flex-direction:column;border:1px solid var(--stroke);box-shadow:var(--shadow)}
+  .front{background:linear-gradient(155deg,#1a2440,#141b33)}
+  .back{background:linear-gradient(155deg,#241a44,#1a1533);transform:rotateY(180deg)}
+  .tag{display:inline-flex;align-self:flex-start;gap:6px;font-size:11px;font-weight:700;letter-spacing:.5px;
+    text-transform:uppercase;color:#c7caff;background:var(--accent-soft);border:1px solid rgba(124,131,255,.32);
+    padding:5px 11px;border-radius:99px;margin-bottom:16px}
+  .tag.vf{color:#ffe08a;background:var(--warn-soft);border-color:rgba(251,191,36,.4)}
+  .q{font-size:20px;font-weight:600;line-height:1.5;flex:1;display:flex;align-items:center;white-space:pre-wrap}
+  .a{font-size:15.5px;line-height:1.65;flex:1;overflow-y:auto}
+  .a b{color:#d9c8ff} .a .verdict{display:inline-block;font-weight:800;font-size:13px;letter-spacing:.5px;
+    padding:4px 12px;border-radius:99px;margin-bottom:12px}
+  .a .vtrue{background:var(--ok-soft);color:#7bf0cc;border:1px solid var(--ok)}
+  .a .vfalse{background:var(--bad-soft);color:#ffb3bf;border:1px solid var(--bad)}
+  .memo{font-size:11.5px;color:var(--faint);margin-top:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .memo .dot{display:inline-flex;align-items:center;gap:5px}
+  .hint{margin-top:16px;font-size:12px;color:var(--faint);text-align:center}
+  kbd{background:var(--panel2);border:1px solid var(--stroke2);border-bottom-width:2px;border-radius:5px;padding:1px 6px;font-size:11px}
+
+  /* QCM choices */
+  .qcm{display:flex;gap:12px;margin-top:8px}
+  .qcm button{flex:1;padding:15px;font-size:15px;font-weight:700;border-radius:13px;cursor:pointer;
+    font-family:inherit;border:1px solid var(--stroke2);transition:.15s}
+  .qcm .vraiBtn{background:var(--ok-soft);color:#7bf0cc;border-color:var(--ok)}
+  .qcm .fauxBtn{background:var(--bad-soft);color:#ffb3bf;border-color:var(--bad)}
+  .qcm button:hover{transform:translateY(-1px)}
+  .qcm button:disabled{opacity:.45;cursor:default;transform:none}
+
+  .rate{display:flex;gap:10px;margin-top:14px}
+  .rate button{flex:1;padding:13px;font-weight:700;font-size:14px;border-radius:13px;cursor:pointer;font-family:inherit;transition:.15s}
+  .btn-again{background:var(--bad-soft);border:1px solid var(--bad);color:#ffb3bf}
+  .btn-again:hover{background:rgba(251,111,132,.25)}
+  .btn-ok{background:var(--ok-soft);border:1px solid var(--ok);color:#7bf0cc}
+  .btn-ok:hover{background:rgba(34,199,154,.25)}
+  .nav{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-top:12px}
+  .nav button{flex:1;padding:12px;border-radius:12px;font-family:inherit;font-size:13.5px;cursor:pointer;
+    background:var(--panel);border:1px solid var(--stroke);color:var(--txt);transition:.15s}
+  .nav button:hover{border-color:var(--stroke2)}
+  .nav button:disabled{opacity:.4;cursor:default}
+  .counter{font-size:13px;color:var(--muted);min-width:64px;text-align:center}
+
+  /* ---------- Results ---------- */
+  #result{display:none;text-align:center;padding:44px 24px}
+  #result .big{font-size:54px;margin-bottom:6px}
+  #result h2{font-size:24px;font-weight:800;margin-bottom:8px}
+  #result p{color:var(--muted);margin-bottom:24px;font-size:14.5px}
+  .rstats{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;margin-bottom:26px}
+  .rstat{background:var(--panel2);border:1px solid var(--stroke);border-radius:14px;padding:16px 22px;min-width:96px}
+  .rstat b{font-size:28px;font-weight:800;display:block;letter-spacing:-.5px}
+  .rstat small{font-size:11.5px;color:var(--muted)}
+  .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;color:#fff;
+    border-radius:13px;padding:13px 22px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;
+    box-shadow:0 10px 24px -8px rgba(124,131,255,.7);transition:.15s}
+  .btn-primary:hover{filter:brightness(1.08);transform:translateY(-1px)}
+
+  .empty{text-align:center;padding:36px 20px;color:var(--muted);font-size:14px}
+  .empty .big{font-size:40px;margin-bottom:10px}
+
+  /* ---------- Sync panel ---------- */
+  .sync{padding:20px;margin-bottom:18px;display:none}
+  .sync h3{font-size:15px;font-weight:700;margin-bottom:5px}
+  .sync .desc{font-size:12.5px;color:var(--muted);margin-bottom:14px;line-height:1.55}
+  .sync .grp{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:11px}
+  .sync input[type=text]{flex:1;min-width:180px;font-family:inherit;font-size:13px;border-radius:10px;
+    border:1px solid var(--stroke);background:var(--panel-solid);color:var(--txt);padding:10px 12px}
+  .sync textarea{width:100%;height:70px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;border-radius:10px;
+    border:1px solid var(--stroke);background:var(--panel-solid);color:var(--txt);padding:10px;resize:vertical}
+  .sync .hr{height:1px;background:var(--stroke);margin:16px 0}
+  .sync .stat-line{font-size:13px;color:var(--muted);margin-bottom:13px}
+  .sub-h{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--faint);margin-bottom:9px}
+  .code{font-family:ui-monospace,monospace;color:#c7caff;background:var(--accent-soft);
+    padding:2px 8px;border-radius:6px;border:1px solid rgba(124,131,255,.3);word-break:break-all}
+  .btn-sm{background:var(--panel2);border:1px solid var(--stroke2);color:var(--txt);border-radius:10px;
+    padding:9px 14px;font-size:13px;font-family:inherit;cursor:pointer;transition:.15s}
+  .btn-sm:hover{border-color:var(--accent)}
+  .msg{font-size:12px;margin-top:4px;min-height:16px}
+  .msg.ok{color:var(--ok)} .msg.err{color:var(--bad)}
+
+  @media(max-width:600px){
+    .dash{grid-template-columns:1fr;justify-items:center;text-align:center}
+    .chips{width:100%}
+    .modes{grid-template-columns:1fr}
+    .q{font-size:18px} .face{padding:22px}
+    .mini{width:84px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="logo">⚖️</div>
+      <div>
+        <h1>Droit de l'entreprise</h1>
+        <div class="sub">HEC Lausanne · Révision QCM · 17 Titres</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="ghost" id="syncBtn" title="Synchroniser entre appareils">☁ Synchro</button>
+      <button class="ghost" id="resetBtn" title="Réinitialiser la progression">↺ Réinitialiser</button>
+    </div>
+  </header>
+
+  <!-- ===================== HOME ===================== -->
+  <div id="home">
+    <div class="panel dash">
+      <div class="ring">
+        <svg width="118" height="118">
+          <circle cx="59" cy="59" r="50" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="11"/>
+          <circle id="ringFg" cx="59" cy="59" r="50" fill="none" stroke="url(#g)" stroke-width="11"
+            stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="314"/>
+          <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#22c79a"/><stop offset="1" stop-color="#34d3a6"/></linearGradient></defs>
+        </svg>
+        <div class="val"><b id="masteryPct">0%</b><span>maîtrisé</span></div>
+      </div>
+      <div class="chips">
+        <div class="chip ok"><b id="cMastered">0</b><small>Cartes maîtrisées</small></div>
+        <div class="chip bad"><b id="cErrors">0</b><small>À revoir (erreurs)</small></div>
+        <div class="chip seen"><b id="cSeen">0</b><small>Cartes vues</small></div>
+      </div>
+    </div>
+
+    <div class="panel sync" id="syncPanel">
+      <h3>☁ Synchronisation & sauvegarde</h3>
+      <div class="desc">Garde la même progression sur ton PC et ton téléphone. La <b>synchro cloud</b> est automatique entre appareils ; l'<b>export/import</b> est un transfert (et une sauvegarde de secours) manuel.</div>
+      <div class="sub-h">Synchro cloud automatique</div>
+      <div class="stat-line" id="syncStatus"></div>
+      <div class="grp">
+        <button class="btn-primary" id="cloudEnable">Activer la synchro cloud</button>
+        <button class="btn-sm" id="cloudCopy" style="display:none">📋 Copier le code</button>
+        <button class="btn-sm" id="cloudOff" style="display:none">Déconnecter</button>
+      </div>
+      <div class="grp">
+        <input type="text" id="cloudCodeIn" placeholder="Coller le code d'un autre appareil…">
+        <button class="btn-sm" id="cloudConnect">Connecter</button>
+      </div>
+      <div class="msg" id="cloudMsg"></div>
+      <div class="hr"></div>
+      <div class="sub-h">Export / Import manuel</div>
+      <div class="grp">
+        <button class="btn-sm" id="expCopy">📤 Exporter (copier)</button>
+        <button class="btn-sm" id="expFile">💾 Télécharger un fichier</button>
+        <button class="btn-sm" id="impFile">📁 Importer un fichier</button>
+        <input type="file" id="fileIn" accept="application/json,.json" style="display:none">
+      </div>
+      <textarea id="impText" placeholder="… ou colle ici un code exporté, puis clique sur « Importer le code »"></textarea>
+      <div class="grp" style="margin-top:8px"><button class="btn-sm" id="impTextBtn">📥 Importer le code</button></div>
+      <div class="msg" id="ioMsg"></div>
+    </div>
+
+    <div class="section-title">Choisis un mode</div>
+    <div class="modes">
+      <button class="mode smart" data-mode="smart">
+        <span class="badge">Recommandé</span>
+        <div class="ic i1">🧠</div>
+        <h3>Révision intelligente</h3>
+        <p>Répétition espacée : priorité à tes points faibles pour tout maîtriser au plus vite.</p>
+      </button>
+      <button class="mode" data-mode="errors">
+        <div class="ic i3">🎯</div>
+        <h3>Mes erreurs</h3>
+        <p>Rejoue uniquement les cartes déjà ratées, mémorisées d'une session à l'autre.</p>
+      </button>
+      <button class="mode" data-mode="flash">
+        <div class="ic i2">📇</div>
+        <h3>Flashcards par Titre</h3>
+        <p>Parcours classique recto/verso, section par section.</p>
+      </button>
+      <button class="mode" data-mode="qcm">
+        <div class="ic i4">✓✗</div>
+        <h3>QCM Vrai / Faux</h3>
+        <p>Mode examen chronométré du barème : +1 bonne réponse, −0,5 erreur.</p>
+      </button>
+    </div>
+
+    <div class="panel picker">
+      <label>Section :</label>
+      <select id="filter"></select>
+      <label class="toggle"><input type="checkbox" id="shuffle" checked> Mélanger</label>
+    </div>
+
+    <div class="section-title">Maîtrise par Titre</div>
+    <div class="panel mastery" id="masteryList"></div>
+  </div>
+
+  <!-- ===================== STUDY ===================== -->
+  <div id="study">
+    <div class="topbar">
+      <button class="ghost" id="backBtn">‹ Retour</button>
+      <div class="info" id="studyInfo"></div>
+    </div>
+    <div class="progress"><span id="modeLabel"></span><span id="pct">0 %</span></div>
+    <div class="bar"><div id="barFill"></div></div>
+
+    <div class="scene">
+      <div class="card" id="card">
+        <div class="face front">
+          <span class="tag" id="tagF"></span>
+          <div class="q" id="question"></div>
+          <div class="qcm" id="qcmBox" style="display:none">
+            <button class="vraiBtn" data-v="1">VRAI</button>
+            <button class="fauxBtn" data-v="0">FAUX</button>
+          </div>
+          <div class="hint" id="frontHint">Clique ou <kbd>Espace</kbd> pour révéler</div>
+        </div>
+        <div class="face back">
+          <span class="tag" id="tagB"></span>
+          <div class="a" id="answer"></div>
+          <div class="memo" id="memo"></div>
+          <div class="hint">As-tu su répondre ?</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rate" id="rate" style="display:none">
+      <button class="btn-again" id="again">✗ À revoir <kbd>1</kbd></button>
+      <button class="btn-ok" id="known">✓ Acquis <kbd>2</kbd></button>
+    </div>
+
+    <div class="nav">
+      <button id="prev">‹ Précédent</button>
+      <span class="counter" id="counter">1 / 1</span>
+      <button id="next">Passer ›</button>
+    </div>
+  </div>
+
+  <!-- ===================== RESULT ===================== -->
+  <div id="result" class="panel"></div>
+</div>
+
+<script>
+const CARDS = [{"id": 1, "t": 1, "q": "Quelle est la définition du droit ?", "a": "Système normatif englobant <b>toutes les règles de droit obligatoires</b> : l'ensemble des règles de conduite imposées aux personnes physiques et morales par un pouvoir que personnifie l'<b>État</b>."}, {"id": 2, "t": 1, "q": "Quelles sont les deux fonctions du droit ?", "a": "<b>Fonction pacificatrice</b> : freiner les appétits égoïstes et assurer la coexistence pacifique.<br><b>Fonction organisatrice</b> : établir un ordre social fondé sur l'équilibre des divers intérêts."}, {"id": 3, "t": 1, "q": "Quelles sont les trois conditions que le droit doit remplir pour exercer ses fonctions ?", "a": "1) Être <b>sûr</b> (sécurité du droit) ;<br>2) Émaner d'un <b>pouvoir social</b> ;<br>3) Correspondre à une <b>idée de la justice</b>."}, {"id": 4, "t": 1, "q": "Qu'est-ce que la sécurité du droit et ses trois manifestations concrètes ?", "a": "Le droit doit être <b>clair et prévisible</b> pour qu'on puisse s'y conformer. Manifestations : la <b>non-rétroactivité</b> des lois, l'existence de <b>règles transitoires</b>, et l'institution de la <b>prescription</b>."}, {"id": 5, "t": 1, "q": "Qu'est-ce que la prescription ?", "a": "L'<b>extinction</b> d'un droit, d'une obligation ou d'une action par l'<b>écoulement du temps</b>."}, {"id": 6, "t": 1, "q": "Quelle est la conséquence pratique de la sécurité du droit ?", "a": "L'<b>effet préventif</b> : chacun peut anticiper les conséquences de ses actes."}, {"id": 7, "t": 1, "q": "Que signifie « l'émanation d'un pouvoir social » ?", "a": "Le droit suppose une <b>autorité habilitée</b> et apte à imposer les normes, les faire exécuter et infliger des sanctions. Dans un État de droit, c'est <b>l'État seul</b> qui assure le fonctionnement de la justice."}, {"id": 8, "t": 2, "q": "Qu'est-ce qu'un sujet de droit ?", "a": "Celui qui peut <b>avoir des droits et assumer des obligations</b> : soit titulaire de droits subjectifs (le <b>créancier</b>), soit la personne obligée (le <b>débiteur</b>)."}, {"id": 9, "t": 2, "q": "Les choses peuvent-elles être sujets de droit ?", "a": "<b>Non.</b> Les choses ne sont jamais sujets de droit : elles ne peuvent être que l'<b>objet</b> d'un droit subjectif (un moyen, non un but)."}, {"id": 10, "t": 2, "q": "Quelle est la distinction centrale entre jouissance et exercice des droits civils ?", "a": "La <b>jouissance</b> = aptitude à être titulaire de droits/obligations.<br>L'<b>exercice</b> = capacité de créer des droits ou de s'engager par sa propre volonté. (Piège n°1 de l'examen.)"}, {"id": 11, "t": 2, "q": "Qu'est-ce que le discernement (art. 16 CC) ?", "a": "Capacité intellectuelle <b>présumée</b> chez toute personne non atteinte de déficience mentale, troubles psychiques, ivresse ou causes semblables l'empêchant d'agir raisonnablement."}, {"id": 12, "t": 2, "q": "Pourquoi l'enfant mineur illustre-t-il la distinction jouissance/exercice ?", "a": "L'enfant mineur <b>est</b> un sujet de droit (il a la <b>jouissance</b>), mais il ne peut pas par sa seule volonté créer des droits ou s'engager (il n'a pas l'<b>exercice</b> des droits civils)."}, {"id": 13, "t": 2, "q": "À ne pas confondre : exercice des droits civils vs droits civiques ?", "a": "Les <b>droits civiques</b> sont des droits politiques (droit de vote, éligibilité) — distincts de l'exercice des droits civils."}, {"id": 14, "t": 2, "q": "Qu'est-ce qu'une personne morale ? Quelles deux grandes formes ?", "a": "Entité qui peut devenir sujet de droits/obligations, disposant de la jouissance ET de l'exercice. Formes : un <b>groupement de personnes</b> organisé corporativement (association, société de capitaux, coopérative) ou un <b>ensemble de biens affectés à un but</b> (la fondation)."}, {"id": 15, "t": 2, "q": "L'entreprise est-elle une personne morale ?", "a": "<b>Non.</b> L'entreprise est « une activité économique indépendante exercée en vue d'un revenu régulier » (art. 2 lit. a ORC). C'est une <b>activité</b>, exploitée par une personne morale (SA) ou physique(s) (entreprise individuelle, SNC)."}, {"id": 16, "t": 3, "q": "Qu'est-ce qu'une règle de droit ?", "a": "Norme <b>générale et abstraite</b> qui énonce de manière <b>contraignante</b> ce qui doit être, et qui bénéficie de la <b>sanction étatique</b> si elle n'est pas respectée."}, {"id": 17, "t": 3, "q": "Que signifient les caractères « général » et « abstrait » ?", "a": "<b>Générale</b> : vise un nombre <b>indéterminé de personnes</b>.<br><b>Abstraite</b> : s'applique à un nombre <b>indéterminé de situations</b>."}, {"id": 18, "t": 3, "q": "Quelle est la structure double (bipartite) de la règle de droit ?", "a": "<b>Les conditions</b> (point de départ) : les faits dont la réalisation entraîne l'application de la règle.<br><b>L'effet juridique</b> : la conséquence attachée à la réalisation de ces conditions. On la retrouve dans tout jugement (partie « fait » / partie « droit »)."}, {"id": 19, "t": 3, "q": "Quel est le caractère le plus important de la règle de droit ?", "a": "Le caractère <b>obligatoire</b> : la règle est accompagnée de la menace d'une <b>sanction</b> (ou de la sanction elle-même)."}, {"id": 21, "t": 4, "q": "Distinguez sources historiques, matérielles et formelles.", "a": "<b>Historiques</b> : fondements ayant influencé le droit (droit romain, coutumes germaniques).<br><b>Matérielles</b> : facteurs donnant naissance à la règle (faits sociaux, économiques, moraux).<br><b>Formelles</b> : formes sous lesquelles le droit positif se manifeste (loi, coutume, jurisprudence, doctrine)."}, {"id": 22, "t": 4, "q": "Quels sont les deux éléments de la coutume ?", "a": "<b>Élément objectif (corpus)</b> : pratique longue, constante, uniforme et généralisée.<br><b>Élément subjectif (animus)</b> : conviction que la pratique est juridiquement obligatoire (<i>opinio iuris</i>)."}, {"id": 23, "t": 4, "q": "Quel rôle joue la coutume en droit suisse ?", "a": "Un rôle uniquement <b>supplétif</b> : elle comble les lacunes de la loi."}, {"id": 24, "t": 4, "q": "Quelle est la hiérarchie des normes en Suisse ?", "a": "1) <b>Droit international</b> (traités, CEDH) ;<br>2) <b>Constitution fédérale</b> (norme suprême interne) ;<br>3) <b>Lois fédérales</b> ;<br>4) <b>Ordonnances</b> (Conseil fédéral) ;<br>5) <b>Droit cantonal</b>."}, {"id": 25, "t": 4, "q": "Quelle est la séparation des pouvoirs en Suisse ?", "a": "<b>Législatif</b> : Assemblée fédérale (Conseil national + Conseil des États).<br><b>Exécutif</b> : Conseil fédéral.<br><b>Judiciaire</b> : Tribunal fédéral (+ tribunaux inférieurs)."}, {"id": 26, "t": 4, "q": "Qu'implique le fait que la Suisse est un État fédéral ?", "a": "La Confédération n'a que les compétences que lui attribue la Constitution (<b>principe d'attribution</b>). Les cantons conservent les <b>compétences résiduelles</b>."}, {"id": 27, "t": 4, "q": "Que prévoit l'art. 1 CC sur l'application de la loi ?", "a": "Le juge applique la <b>loi</b> ; à défaut, le <b>droit coutumier</b> ; à défaut, il statue comme s'il était <b>législateur</b>."}, {"id": 29, "t": 4, "q": "La jurisprudence est-elle contraignante en droit suisse ?", "a": "<b>Non</b> formellement (pas de <i>stare decisis</i>), mais les arrêts du <b>Tribunal fédéral</b> ont une autorité de fait considérable."}, {"id": 30, "t": 4, "q": "Quelle est la force obligatoire de la doctrine ?", "a": "<b>Aucune</b> force obligatoire. Travaux des juristes (commentaires, traités) : source d'inspiration pour la jurisprudence et le législateur."}, {"id": 31, "t": 5, "q": "Quel est le critère des intérêts (Savigny) pour distinguer droit public / privé ?", "a": "Le <b>droit public</b> protège l'intérêt général ; le <b>droit privé</b> protège l'intérêt des particuliers. Critiqué car beaucoup de règles privées servent aussi l'intérêt général."}, {"id": 32, "t": 5, "q": "Quel est le critère de subordination ?", "a": "En <b>droit public</b> : rapport de <b>subordination</b> (État — administré). En <b>droit privé</b> : rapport d'<b>égalité</b> entre les parties."}, {"id": 33, "t": 5, "q": "Quel est le critère de la sanction (droit public/privé) ?", "a": "<b>Droit public</b> : sanction <b>d'office</b>. <b>Droit privé</b> : sanction <b>sur demande</b> (à la requête du titulaire du droit)."}, {"id": 34, "t": 5, "q": "Distinguez droit matériel et droit formel.", "a": "<b>Matériel</b> : définit les droits et obligations substantiels (CO, CC, CP).<br><b>Formel (procédural)</b> : détermine comment faire valoir les droits en justice (CPC, CPP, PA). Il est au <b>service</b> du droit matériel."}, {"id": 35, "t": 5, "q": "Distinguez droit objectif et droits subjectifs.", "a": "<b>Droit objectif</b> = les règles de droit. <b>Droits subjectifs</b> = les prérogatives accordées aux individus."}, {"id": 36, "t": 6, "q": "Que sont les libertés fondamentales et quel est leur effet ?", "a": "Droits subjectifs constitutionnels garantis contre les atteintes de l'État (<b>effet vertical direct</b>). Certaines ont aussi un <b>effet horizontal indirect</b> entre particuliers."}, {"id": 37, "t": 6, "q": "Quelles sont les 4 conditions de restriction d'une liberté (art. 36 Cst.) ?", "a": "1) Reposer sur une <b>base légale</b> ;<br>2) Être justifiée par un <b>intérêt public</b> (ou protection de droits d'autrui) ;<br>3) Être <b>proportionnée</b> ;<br>4) Ne pas toucher à l'<b>essence</b> de la liberté."}, {"id": 38, "t": 6, "q": "Que garantit l'art. 27 Cst. (liberté économique) ?", "a": "Le droit de <b>choisir librement une profession</b> et de l'exercer. Garantit la concurrence, interdit les monopoles privés contraires au droit."}, {"id": 39, "t": 6, "q": "Quels sont les principes fondamentaux du droit administratif ?", "a": "<b>Légalité</b> (art. 5 Cst.), <b>intérêt public</b>, <b>proportionnalité</b>, <b>bonne foi</b> (protection de la confiance légitime), <b>non-rétroactivité</b>."}, {"id": 40, "t": 6, "q": "Qu'est-ce qu'une décision administrative et ses caractères ?", "a": "Acte <b>individuel et concret</b> d'une autorité réglant une situation juridique. Caractères : <b>unilatérale</b>, <b>exécutoire</b>, <b>susceptible de recours</b>."}, {"id": 41, "t": 6, "q": "Quelles sont les conditions de la responsabilité pénale ?", "a": "1) <b>Comportement humain</b> (action/omission) ;<br>2) <b>Illicéité</b> (<i>nullum crimen sine lege</i>) ;<br>3) <b>Culpabilité</b> : intention (dol, art. 12 al. 2 CP) ou négligence (al. 3)."}, {"id": 42, "t": 6, "q": "Comment classer les infractions selon leur gravité ?", "a": "<b>Crimes</b> : peine privative de liberté > 3 ans.<br><b>Délits</b> : peine privative ≤ 3 ans ou peine pécuniaire.<br><b>Contraventions</b> : amende."}, {"id": 43, "t": 6, "q": "Quand une entreprise est-elle pénalement responsable (art. 102 CP) ?", "a": "Si une infraction ne peut être imputée à une personne physique déterminée en raison d'une <b>organisation déficiente</b>. Pour certaines infractions (al. 2 : blanchiment, corruption, financement du terrorisme), responsabilité <b>même si</b> une personne physique est identifiable. Sanction : jusqu'à <b>5 millions CHF</b>."}, {"id": 44, "t": 6, "q": "Quelle est la primauté du droit international en Suisse ?", "a": "Les traités priment sur le droit fédéral ordinaire, <b>mais pas</b> sur les normes constitutionnelles impératives (<i>ius cogens</i>). La CEDH est ratifiée par la Suisse (Cour EDH compétente)."}, {"id": 45, "t": 7, "q": "Quand commence et finit la jouissance des droits civils (art. 11 CC) ?", "a": "Commence à la <b>naissance</b>, se termine au <b>décès</b>. L'enfant <b>conçu</b> est présumé né si son intérêt le requiert."}, {"id": 47, "t": 7, "q": "Qu'est-ce que le domicile (art. 23 CC) ?", "a": "Le lieu où la personne réside avec l'<b>intention de s'y établir</b>. Un seul domicile possible (<b>pluriel impossible</b>)."}, {"id": 49, "t": 7, "q": "Caractérisez l'association (art. 60 ss CC).", "a": "But <b>idéal</b> (non lucratif pour les membres). Constitution : <b>statuts écrits</b> + réunion fondatrice. Organes : <b>assemblée générale</b> + <b>comité</b>."}, {"id": 50, "t": 7, "q": "Caractérisez la fondation (art. 80 ss CC).", "a": "<b>Affectation d'un patrimoine</b> à un but déterminé. <b>Pas de membres</b>. Surveillance par l'autorité."}, {"id": 51, "t": 7, "q": "Quelle est la responsabilité dans l'entreprise individuelle ?", "a": "Pas de personnalité morale ; l'exploitant répond sur l'<b>ensemble de ses biens</b>. Inscription au RC obligatoire si chiffre d'affaires ≥ <b>100 000 CHF</b>."}, {"id": 52, "t": 7, "q": "Distinguez société simple et SNC.", "a": "<b>Société simple (art. 530 CO)</b> : pas de personnalité morale, resp. solidaire, but commun.<br><b>SNC (art. 552 CO)</b> : personnalité juridique limitée, tous les associés répondent <b>indéfiniment et solidairement</b>."}, {"id": 53, "t": 7, "q": "Caractérisez la société en commandite (art. 594 CO).", "a": "Au moins un <b>commandité</b> (responsabilité illimitée) + des <b>commanditaires</b> (responsabilité limitée à l'apport)."}, {"id": 54, "t": 7, "q": "Comparez SA et Sàrl (capital et responsabilité).", "a": "<b>SA (art. 620 ss CO)</b> : capital min. <b>100 000 CHF</b> (libéré min. 50 000), actions, resp. limitée, conseil d'administration.<br><b>Sàrl (art. 772 ss CO)</b> : capital min. <b>20 000 CHF</b>, parts sociales, resp. limitée, gérants."}, {"id": 56, "t": 7, "q": "Quelles sont les formes du testament ?", "a": "<b>Olographe</b> : entièrement manuscrit + daté + signé.<br><b>Public</b> : devant officier public + 2 témoins."}, {"id": 59, "t": 7, "q": "Qu'est-ce qu'une servitude (art. 730 ss CC) ?", "a": "Charge imposée à un fonds (<b>servant</b>) pour l'utilité d'un autre fonds (<b>dominant</b>) ou d'une personne."}, {"id": 60, "t": 7, "q": "Distinguez saisie et faillite dans l'exécution forcée (LP).", "a": "<b>Saisie</b> (débiteur non commerçant) : saisie des biens à concurrence de la créance.<br><b>Faillite</b> (commerçant) : réalisation de <b>tout le patrimoine</b> au profit de tous les créanciers."}, {"id": 61, "t": 7, "q": "Que prévoit l'art. 8 CC sur le fardeau de la preuve ?", "a": "Chaque partie doit <b>prouver les faits</b> dont elle tire un droit."}, {"id": 62, "t": 8, "q": "Qu'est-ce qu'une obligation ?", "a": "Lien juridique entre au moins <b>deux personnes</b> (créancier et débiteur) en vertu duquel le débiteur est tenu d'une <b>prestation</b> envers le créancier."}, {"id": 63, "t": 8, "q": "Distinguez créance, dette et prestation.", "a": "<b>Créance</b> : droit du créancier d'exiger la prestation.<br><b>Dette</b> : devoir du débiteur d'exécuter.<br><b>Prestation</b> : un faire ou un ne pas faire ; doit être possible, licite, déterminable et patrimoniale."}, {"id": 64, "t": 8, "q": "Distinguez droit relatif et droit absolu.", "a": "<b>Droit relatif</b> (= créance) : opposable <b>uniquement au débiteur</b>.<br><b>Droit absolu</b> (réel, PI, personnalité) : opposable <b>erga omnes</b> (à tous)."}, {"id": 65, "t": 8, "q": "Qu'est-ce qu'une obligation imparfaite (naturelle) ?", "a": "Obligation <b>juridiquement valide</b> mais dont l'exécution <b>ne peut être contrainte</b> en justice (dette prescrite, dette de jeu). Si exécutée volontairement, elle ne peut être <b>répétée</b>."}, {"id": 66, "t": 9, "q": "Qu'est-ce qu'un contrat (art. 1 CO) ?", "a": "Accord de <b>deux ou plusieurs volontés concordantes</b> en vue de créer, modifier ou éteindre un rapport juridique."}, {"id": 68, "t": 9, "q": "Quels sont les deux quasi-contrats ?", "a": "La <b>gestion d'affaires sans mandat</b> (art. 419 ss CO) et l'<b>enrichissement illégitime</b> (art. 62-67 CO)."}, {"id": 70, "t": 10, "q": "Distinguez contrat synallagmatique et unilatéral.", "a": "<b>Synallagmatique</b> (bilatéral parfait) : obligations <b>réciproques</b> (vente, bail, travail).<br><b>Unilatéral</b> : une seule partie s'oblige (donation)."}, {"id": 72, "t": 10, "q": "Distinguez contrat nommé et innommé.", "a": "<b>Nommé</b> : réglé par la loi (vente, bail, mandat).<br><b>Innommé</b> : sui generis (ex. franchise)."}, {"id": 73, "t": 10, "q": "Que prévoit l'autonomie de la volonté (art. 19-20 CO) ?", "a": "Les parties sont <b>libres</b> de conclure tout contrat et d'en fixer le contenu, dans les limites de la <b>loi</b>, de l'<b>ordre public</b> et des <b>bonnes mœurs</b>."}, {"id": 74, "t": 10, "q": "Quels éléments sont nécessaires à la conclusion d'un contrat ?", "a": "Une <b>offre</b> (proposition ferme et complète), une <b>acceptation</b>, et leur <b>concordance</b> sur les éléments essentiels (<i>essentialia negotii</i>)."}, {"id": 76, "t": 10, "q": "Qu'est-ce que la règle de l'insolite (conditions générales) ?", "a": "Une <b>clause insolite</b> n'est pas intégrée au contrat si l'adhérent ne pouvait s'y attendre. L'art. 8 LCD interdit aussi les <b>clauses abusives</b>."}, {"id": 77, "t": 10, "q": "Quelles sont les trois formes du contrat ?", "a": "<b>Liberté de forme</b> (principe, art. 11 CO).<br><b>Forme écrite</b> : imposée par la loi (cautionnement…).<br><b>Forme authentique</b> (notariée) : vente immobilière, constitution SA/Sàrl, donation immobilière. Non-respect = <b>nullité</b>."}, {"id": 78, "t": 10, "q": "Quels vices affectent l'objet du contrat (nullité, art. 20 CO) ?", "a": "Objet <b>impossible</b> (initial), <b>illicite</b> (contraire à la loi), ou <b>immoral</b> (contraire aux bonnes mœurs) → <b>nullité</b>."}, {"id": 79, "t": 10, "q": "Quels sont les vices du consentement ?", "a": "<b>Erreur essentielle</b> (art. 23-27), <b>dol</b> (art. 28, tromperie intentionnelle), <b>crainte fondée</b> (art. 29-30, menace), <b>lésion</b> (art. 21, disproportion exploitée). Sanction des 3 premiers : <b>invalidation</b> (action en 1 an)."}, {"id": 80, "t": 10, "q": "Qu'est-ce que la représentation directe et ses conditions ?", "a": "Le représentant agit <b>au nom et pour le compte</b> du représenté ; les effets tombent directement sur lui. Conditions : <b>pouvoir de représentation</b> + <b>agir au nom d'autrui</b>."}, {"id": 81, "t": 10, "q": "Que se passe-t-il en cas de représentation sans pouvoirs (art. 38 CO) ?", "a": "Le représenté peut <b>ratifier ou refuser</b>. En cas de refus, le faux représentant doit <b>réparer le dommage</b>."}, {"id": 82, "t": 10, "q": "Qu'est-ce que la stipulation pour autrui (art. 112 CO) ?", "a": "Le promettant s'engage envers le stipulant à effectuer une prestation à un <b>tiers bénéficiaire</b>."}, {"id": 83, "t": 10, "q": "Distinguez cautionnement et porte-fort.", "a": "<b>Cautionnement (art. 492 ss CO)</b> : le garant promet de payer si le débiteur principal ne paie pas (forme écrite + mentions légales).<br><b>Porte-fort (art. 111 CO)</b> : promesse du fait d'un tiers ; si le tiers n'exécute pas, le porte-fort répare."}, {"id": 85, "t": 11, "q": "Qu'est-ce que la théorie de la différence (dommage) ?", "a": "Le dommage = <b>différence</b> entre le patrimoine actuel et le patrimoine <b>hypothétique</b> si l'événement dommageable ne s'était pas produit."}, {"id": 86, "t": 11, "q": "Distinguez dommage patrimonial et tort moral.", "a": "<b>Patrimonial</b> : perte effective + manque à gagner + frais supplémentaires.<br><b>Tort moral</b> (art. 47-49 CO) : atteinte à la personnalité, réparée en argent si circonstances justifiées."}, {"id": 87, "t": 11, "q": "Distinguez causalité naturelle et adéquate.", "a": "<b>Naturelle</b> (<i>conditio sine qua non</i>) : sans le comportement, pas de dommage.<br><b>Adéquate</b> : le comportement est propre, selon le cours ordinaire des choses, à entraîner un tel résultat."}, {"id": 88, "t": 11, "q": "Comment le lien causal peut-il être interrompu ?", "a": "Par un <b>fait naturel extraordinaire</b>, un <b>fait d'un tiers</b> ou un <b>fait du lésé</b>."}, {"id": 89, "t": 11, "q": "Distinguez illicéité par le résultat et par le comportement.", "a": "<b>Par le résultat</b> : atteinte à un <b>droit absolu</b> (propriété, intégrité, vie).<br><b>Par le comportement</b> : violation d'une <b>norme de comportement</b> protégeant autrui."}, {"id": 91, "t": 11, "q": "Quels sont les éléments de la faute ?", "a": "<b>Objectif</b> : manquement au standard d'une personne raisonnable et diligente.<br><b>Subjectif</b> : capacité de <b>discernement</b> du responsable."}, {"id": 93, "t": 11, "q": "Quels sont les délais de prescription délictuelle (art. 60 CO) ?", "a": "<b>3 ans</b> dès connaissance du dommage et du responsable (relatif) ; <b>10 ans</b> dès le fait dommageable (absolu) ; <b>20 ans</b> pour lésions corporelles et décès."}, {"id": 94, "t": 12, "q": "Quelles sont les conditions de la responsabilité contractuelle ?", "a": "<b>Préjudice</b> + <b>violation d'une obligation contractuelle</b> + <b>causalité</b> + <b>faute présumée</b> (art. 97 CO)."}, {"id": 95, "t": 12, "q": "Quelle est la différence clé de la faute en matière contractuelle (art. 97 CO) ?", "a": "La faute du débiteur est <b>présumée</b> (contrairement au délictuel où le lésé doit la prouver). Le débiteur se libère en prouvant qu'il <b>n'a pas failli</b> à sa diligence."}, {"id": 97, "t": 12, "q": "Le cumul de responsabilités est-il admis en droit suisse ?", "a": "<b>Oui</b>, si les conditions des deux (contractuelle et délictuelle) sont réunies. Le lésé <b>choisit</b> le fondement le plus favorable."}, {"id": 98, "t": 13, "q": "Quel est le principe de l'enrichissement illégitime (art. 62-67 CO) ?", "a": "Celui qui, <b>sans cause légitime</b>, s'est enrichi aux dépens d'autrui est tenu à <b>restitution</b>. C'est une source <b>légale</b> d'obligations."}, {"id": 100, "t": 13, "q": "Qu'est-ce que la répétition de l'indu (condictio indebiti) ?", "a": "Cas le plus courant : paiement d'une <b>dette inexistante</b> ou en vertu d'un contrat nul → restitution. <b>Exception</b> : pas de restitution si payé en <b>connaissance de cause</b> (art. 63 al. 1 CO)."}, {"id": 103, "t": 14, "q": "Qu'est-ce que la solidarité passive (art. 143-149 CO) ?", "a": "Plusieurs débiteurs tenus chacun pour la <b>totalité</b> envers le créancier. Le créancier peut exiger le tout de <b>n'importe quel</b> débiteur. Peut résulter de la loi ou de la convention. Recours interne entre codébiteurs (art. 148)."}, {"id": 104, "t": 14, "q": "Distinguez condition suspensive et condition résolutoire.", "a": "<b>Suspensive</b> : l'obligation ne produit ses effets qu'à la <b>réalisation</b> de la condition.<br><b>Résolutoire</b> : l'obligation existe dès la conclusion mais <b>s'éteint</b> si la condition se réalise."}, {"id": 106, "t": 14, "q": "Qu'est-ce que la clause pénale (art. 160-163 CO) ?", "a": "Somme <b>forfaitaire</b> due en cas d'inexécution ou de retard. S'ajoute en principe à l'exécution (sauf clause libératoire)."}, {"id": 107, "t": 14, "q": "Comment fonctionnent les arrhes (art. 158 CO) ?", "a": "Somme remise à la conclusion. Si celui qui les a <b>données</b> se dédit, il les <b>perd</b>. Si celui qui les a <b>reçues</b> se dédit, il rend le <b>double</b>."}, {"id": 108, "t": 15, "q": "Qu'est-ce que la cession de créance (art. 164 ss CO) ?", "a": "Le créancier (<b>cédant</b>) transfère sa créance à un tiers (<b>cessionnaire</b>) <b>sans le consentement du débiteur</b>. Forme : écrit simple (art. 165)."}, {"id": 109, "t": 15, "q": "Quand la cession est-elle opposable au débiteur (art. 167 CO) ?", "a": "Dès <b>notification</b> ou reconnaissance. Avant cela, le débiteur se libère valablement en payant au <b>cédant</b>."}, {"id": 110, "t": 15, "q": "Que garantit le cédant à titre onéreux ?", "a": "L'<b>existence</b> de la créance, mais <b>pas la solvabilité</b> du débiteur (sauf convention). Le débiteur conserve toutes ses exceptions contre le cédant."}, {"id": 111, "t": 15, "q": "Distinguez reprise de dette interne et externe.", "a": "<b>Interne (art. 175)</b> : accord débiteur–repreneur ; le créancier doit consentir pour libérer l'ancien débiteur.<br><b>Externe (art. 176)</b> : accord repreneur–créancier ; l'ancien débiteur est libéré <b>d'office</b>."}, {"id": 112, "t": 15, "q": "Qu'est-ce que la reprise cumulative (art. 181 CO) ?", "a": "Le nouveau débiteur s'engage à payer, mais l'ancien <b>reste tenu</b> en cas de non-paiement (responsabilité cumulative pendant <b>3 ans</b>)."}, {"id": 113, "t": 16, "q": "Distinguez dettes portables, quérables et remettables.", "a": "<b>Portables</b> : le débiteur transporte la prestation au domicile du créancier.<br><b>Quérables</b> : le créancier vient la chercher (règle générale, art. 74 CO).<br><b>Remettables</b> : lieu convenu ou lieu où se trouve la chose."}, {"id": 114, "t": 16, "q": "Distinguez exigibilité et exécutabilité.", "a": "<b>Exigibilité</b> : moment où le <b>créancier peut exiger</b> (immédiat si aucun terme, art. 75).<br><b>Exécutabilité</b> : moment où le <b>débiteur peut s'exécuter</b> (même en avance si pas de terme)."}, {"id": 115, "t": 16, "q": "Qu'est-ce que l'exception d'inexécution (art. 82 CO) ?", "a": "Dans un contrat synallagmatique, chaque partie peut <b>refuser sa prestation</b> tant que l'autre ne l'a pas exécutée ni offert de l'exécuter."}, {"id": 116, "t": 16, "q": "Qu'est-ce que l'exception d'insolvabilité (art. 83 CO) ?", "a": "Si la situation financière du cocontractant s'est <b>détériorée</b> depuis la conclusion, la partie peut <b>suspendre</b> sa prestation jusqu'à obtention de <b>sûretés</b>."}, {"id": 118, "t": 16, "q": "Qu'est-ce que la demeure du créancier (art. 91 ss CO) ?", "a": "Le créancier est en demeure s'il <b>refuse ou s'abstient</b> d'accepter la prestation dûment offerte. Le débiteur peut alors <b>consigner</b> ou se libérer."}, {"id": 119, "t": 16, "q": "Quels sont les effets de la demeure simple du débiteur (art. 102-106 CO) ?", "a": "Requiert en principe une <b>mise en demeure</b> (sommation), sauf <b>terme comminatoire</b> (demeure automatique). Effets : <b>intérêts moratoires (5 %)</b> et transfert du <b>risque</b> sur le débiteur."}, {"id": 120, "t": 16, "q": "Quelles options offre la demeure qualifiée (art. 107-109 CO) ?", "a": "Après mise en demeure non satisfaite (contrat synallagmatique) : 1) exiger l'exécution + dommages-intérêts ; 2) fixer un <b>délai supplémentaire</b> ; 3) si délai expiré : renoncer à l'exécution et demander des <b>dommages-intérêts négatifs</b> ou la <b>résolution</b>."}, {"id": 123, "t": 17, "q": "Qu'est-ce que la confusion (art. 118 CO) ?", "a": "Réunion dans la <b>même personne</b> des qualités de créancier et de débiteur (ex. le débiteur hérite du créancier). L'obligation s'éteint <b>de plein droit</b>."}, {"id": 124, "t": 17, "q": "Qu'est-ce que l'impossibilité subséquente (art. 119 CO) ?", "a": "Si l'exécution devient impossible pour des causes <b>non imputables</b> au débiteur (force majeure), l'obligation s'éteint. Dans un contrat synallagmatique, l'obligation corrélative s'éteint aussi (risque sur le <b>créancier</b>)."}, {"id": 126, "t": 17, "q": "Quel est le délai de prescription général (art. 127 CO) ?", "a": "<b>10 ans</b>, sauf disposition contraire. Délais spéciaux : <b>5 ans</b> (loyers, salaires, intérêts), <b>3 ans</b> (délictuel), <b>20 ans</b> (lésions corporelles/décès)."}, {"id": 127, "t": 17, "q": "Distinguez suspension et interruption de la prescription.", "a": "<b>Suspension (art. 134)</b> : le délai est <b>gelé</b> (entre époux, pendant pourparlers…) puis reprend.<br><b>Interruption (art. 135)</b> : un <b>nouveau délai plein recommence</b> (poursuite, action en justice, reconnaissance de dette)."}, {"id": 128, "t": 17, "q": "Quelles sont les limites de la renonciation à la prescription (art. 141 CO) ?", "a": "Le débiteur peut y renoncer pour une durée déterminée, mais <b>pas plus de 10 ans</b> et <b>pas pour la prescription future</b>."}, {"id": 131, "t": 1, "q": "Distinguez droit naturel et droit positif.", "a": "<b>Droit naturel</b> : principes idéaux de justice, supposés universels et immuables.<br><b>Droit positif</b> : l'ensemble des règles <b>effectivement en vigueur</b> dans un État à un moment donné (≠ universel et immuable)."}, {"id": 132, "t": 3, "q": "Distinguez règles impératives et dispositives.", "a": "<b>Impératives</b> (de droit contraignant) : ne peuvent être écartées par convention des parties (ordre public).<br><b>Dispositives</b> (de droit supplétif) : s'appliquent seulement si les parties n'ont rien convenu d'autre. <b>Toutes les règles ne sont donc pas impératives.</b>"}, {"id": 133, "t": 3, "q": "Distinguez droits réels (absolus) et droits personnels (relatifs).", "a": "<b>Droits réels / absolus</b> : opposables à tous (<i>erga omnes</i>), ex. propriété.<br><b>Droits personnels / relatifs</b> : ne peuvent être exercés qu'à l'encontre d'une <b>personne déterminée</b> (le débiteur), ex. une créance."}, {"id": 134, "t": 7, "q": "Qui peut constituer une fondation et quand acquiert-elle la personnalité ?", "a": "Une fondation peut être constituée par une personne <b>physique OU morale</b> (pas uniquement physique). Elle acquiert la personnalité juridique à son <b>inscription au Registre du commerce</b>. L'acte de fondation indique ses <b>organes</b> et son mode d'administration."}, {"id": 135, "t": 7, "q": "À l'intérieur d'une parentèle, comment se répartit la succession ?", "a": "Entre héritiers du <b>même degré</b> : par parts <b>égales</b>. La <b>tête de parentèle</b> et ses descendants se répartissent la part selon la <b>souche</b> (représentation), pas tous par parts égales entre eux. Les arrière-grands-parents relèvent de la <b>3ème parentèle</b>."}, {"id": 136, "t": 10, "q": "Distinguez points objectivement et subjectivement essentiels.", "a": "<b>Objectivement essentiels</b> : éléments sans lesquels le type de contrat n'existe pas (chose + prix pour la vente).<br><b>Subjectivement essentiels</b> : points qu'une partie érige en condition de son engagement (ex. un délai/lieu de livraison exigé). L'accord doit porter sur <b>les deux</b>."}, {"id": 137, "t": 10, "q": "Qu'est-ce qu'un contrat mixte (ou composé) ?", "a": "Contrat combinant des éléments de <b>plusieurs contrats nommés</b> (ex. contrat hôtelier = bail + dépôt + vente). Une vente simple n'est <b>pas</b> un contrat mixte."}, {"id": 139, "t": 14, "q": "Distinguez débiteurs collectifs et débiteurs solidaires.", "a": "<b>Débiteurs collectifs (en main commune)</b> : doivent exécuter <b>tous ensemble</b> (la prestation ne peut être réclamée qu'à tous).<br><b>Débiteurs solidaires</b> : le créancier peut réclamer la <b>totalité</b> à <b>n'importe lequel</b> d'entre eux."}, {"id": 140, "t": 14, "q": "Que permet la solidarité active et peut-elle être conventionnelle ?", "a": "<b>Solidarité active</b> : plusieurs <b>créanciers</b>, chacun pouvant exiger toute la prestation. Elle peut être prévue par le <b>contrat</b>. (Attention : elle donne plusieurs créanciers, pas plusieurs débiteurs.) Une obligation <b>peut</b> avoir plusieurs créanciers."}, {"id": 141, "t": 9, "q": "Qu'est-ce qu'une incombance (Obliegenheit) ?", "a": "Un devoir dont l'inexécution n'est pas sanctionnée par une action en exécution, mais fait perdre un <b>avantage</b> à celui qui ne le respecte pas (ex. obligation d'aviser l'assureur). C'est une forme d'<b>obligation imparfaite</b>."}, {"id": 142, "t": 16, "q": "Qu'est-ce qu'une quittance ?", "a": "Déclaration <b>écrite du créancier</b> reconnaissant avoir reçu une prestation déterminée. Elle sert de preuve du paiement."}, {"id": 143, "t": 16, "q": "Comment se libère une dette d'argent libellée en monnaie étrangère ?", "a": "Le débiteur <b>peut</b> se libérer en <b>francs suisses</b> (au cours du jour de l'échéance), sauf si le contrat exige une exécution effective en monnaie étrangère (« clause effective »). Donc il n'est pas vrai qu'il ne peut « jamais » payer en CHF."}, {"id": 144, "t": 14, "vf": true, "q": "VRAI ou FAUX ?\n\n« On parle de débiteurs collectifs lorsque plusieurs personnes sont débitrices d'une même dette, de telle sorte qu'elles doivent toutes l'exécuter ensemble. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>C'est bien la définition des débiteurs <b>collectifs (en main commune)</b> — à distinguer des débiteurs solidaires."}, {"id": 145, "t": 14, "vf": true, "q": "VRAI ou FAUX ?\n\n« La solidarité active présente l'avantage pour le créancier d'avoir plusieurs débiteurs pour une seule et même dette. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Confusion : la solidarité <b>active</b> concerne plusieurs <b>créanciers</b>, pas plusieurs débiteurs. C'est la solidarité <b>passive</b> qui donne plusieurs débiteurs."}, {"id": 146, "t": 14, "vf": true, "q": "VRAI ou FAUX ?\n\n« La solidarité active peut être prévue par le contrat. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Elle peut résulter de la <b>loi</b> ou de la <b>convention</b>."}, {"id": 147, "t": 14, "vf": true, "q": "VRAI ou FAUX ?\n\n« Une obligation peut avoir plusieurs créanciers. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Oui — c'est précisément le cas de la pluralité de créanciers (dont la solidarité active)."}, {"id": 148, "t": 13, "vf": true, "q": "VRAI ou FAUX ?\n\n« L'enrichissement du défendeur peut prendre la forme d'une augmentation ou d'une non-diminution de son patrimoine. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>L'enrichissement peut être une augmentation de l'actif OU une économie (non-diminution du patrimoine)."}, {"id": 149, "t": 13, "vf": true, "q": "VRAI ou FAUX ?\n\n« Les prestations faites en vue d'atteindre un but illicite ou immoral doivent être restituées (répétées). »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Au contraire : pas de restitution de ce qui a été donné en vue d'un but <b>illicite ou immoral</b> (refus de l'action, art. 66 CO)."}, {"id": 150, "t": 13, "vf": true, "q": "VRAI ou FAUX ?\n\n« L'enrichissement illégitime est une source volontaire d'obligations. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>C'est une source <b>légale</b> d'obligations, pas volontaire."}, {"id": 151, "t": 13, "vf": true, "q": "VRAI ou FAUX ?\n\n« L'étendue de la restitution dépend de la bonne ou mauvaise foi de l'enrichi. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>L'enrichi de <b>bonne foi</b> ne restitue que l'enrichissement <b>actuel</b> (art. 64 CO) ; de mauvaise foi, il restitue davantage."}, {"id": 152, "t": 4, "vf": true, "q": "VRAI ou FAUX ?\n\n« Les avis émis par la doctrine ont la même force obligatoire que la loi. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>La doctrine n'a <b>aucune force obligatoire</b> ; elle inspire seulement."}, {"id": 153, "t": 4, "vf": true, "q": "VRAI ou FAUX ?\n\n« La Constitution fédérale détermine les compétences de la Confédération. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Oui — principe d'attribution : la Confédération n'a que les compétences que lui confère la Cst."}, {"id": 154, "t": 4, "vf": true, "q": "VRAI ou FAUX ?\n\n« Le Code civil consacre le principe de la séparation des pouvoirs. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>La séparation des pouvoirs est consacrée par la <b>Constitution</b>, pas par le CC."}, {"id": 155, "t": 11, "vf": true, "q": "VRAI ou FAUX ?\n\n« La perte effective consiste dans la perte d'un gain futur que la victime aurait réalisé sans l'acte dommageable. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Cela décrit le <b>manque à gagner (gain manqué)</b>. La <b>perte effective</b> est une diminution du patrimoine existant."}, {"id": 156, "t": 11, "vf": true, "q": "VRAI ou FAUX ?\n\n« Le dommage corporel est celui qui résulte d'une atteinte à l'intégrité physique de la victime. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Définition correcte du dommage corporel."}, {"id": 157, "t": 11, "vf": true, "q": "VRAI ou FAUX ?\n\n« La faute grave de la victime ou d'un tiers ne peut en aucune manière interrompre la causalité. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Une faute grave de la victime ou d'un tiers <b>peut</b> rompre le lien de causalité (adéquate)."}, {"id": 158, "t": 5, "vf": true, "q": "VRAI ou FAUX ?\n\n« Les contrats de travail entre une SA de droit privé et ses employés relèvent du droit public. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Le contrat de travail relève du <b>droit privé</b> (CO), rapport d'égalité entre parties."}, {"id": 159, "t": 5, "vf": true, "q": "VRAI ou FAUX ?\n\n« L'obligation d'une SA de droit privé de s'acquitter de la TVA relève du droit public. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>La TVA est un rapport <b>fiscal</b> État–contribuable : droit public (subordination, sanction d'office)."}, {"id": 160, "t": 1, "vf": true, "q": "VRAI ou FAUX ?\n\n« Le droit positif est constitué exclusivement de règles universelles et immuables conformes à la nature humaine. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Cela décrit le <b>droit naturel</b>. Le droit positif = règles effectivement en vigueur, variables dans le temps."}, {"id": 161, "t": 1, "vf": true, "q": "VRAI ou FAUX ?\n\n« Les droits relatifs sont des droits subjectifs. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Les droits relatifs (créances) sont une catégorie de droits <b>subjectifs</b>."}, {"id": 162, "t": 3, "vf": true, "q": "VRAI ou FAUX ?\n\n« Toutes les règles de droit sont impératives. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Faux : il existe aussi des règles <b>dispositives (supplétives)</b>, écartables par convention."}, {"id": 163, "t": 3, "vf": true, "q": "VRAI ou FAUX ?\n\n« La règle de droit est générale car elle s'applique à un nombre indéterminé de personnes. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>« Générale » = nombre indéterminé de personnes ; « abstraite » = nombre indéterminé de situations."}, {"id": 164, "t": 6, "vf": true, "q": "VRAI ou FAUX ?\n\n« Le droit administratif fait partie du droit public. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Oui — avec le droit constitutionnel, pénal, fiscal, le droit administratif relève du droit public."}, {"id": 165, "t": 7, "vf": true, "q": "VRAI ou FAUX ?\n\n« Le droit des contrats fait partie du droit public. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Le droit des contrats relève du <b>droit privé</b> (CO)."}, {"id": 166, "t": 4, "vf": true, "q": "VRAI ou FAUX ?\n\n« Les lois n'ont, en principe, pas d'effet rétroactif. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Principe de <b>non-rétroactivité</b> (sécurité du droit) — sauf exceptions légales strictes."}, {"id": 167, "t": 4, "vf": true, "q": "VRAI ou FAUX ?\n\n« La loi s'interprète uniquement selon la méthode littérale. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Quatre méthodes : littérale, systématique, historique, téléologique — combinées (pluralisme méthodologique)."}, {"id": 168, "t": 4, "vf": true, "q": "VRAI ou FAUX ?\n\n« Les lois générales priment les lois spéciales. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Inverse : <i>lex specialis derogat legi generali</i> — la loi <b>spéciale</b> prime la générale."}, {"id": 169, "t": 17, "vf": true, "q": "VRAI ou FAUX ?\n\n« L'impossibilité subséquente entraîne l'extinction de l'obligation qui en est affectée. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Art. 119 CO : si l'exécution devient impossible sans faute du débiteur, l'obligation s'éteint."}, {"id": 170, "t": 17, "vf": true, "q": "VRAI ou FAUX ?\n\n« Une impossibilité subséquente doit précéder la naissance de l'obligation. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Par définition « subséquente » = elle survient <b>après</b> la naissance. Avant, c'est une impossibilité <b>initiale</b> (nullité, art. 20)."}, {"id": 171, "t": 17, "vf": true, "q": "VRAI ou FAUX ?\n\n« L'impossibilité subséquente suppose la réunion dans la même personne des qualités de créancier et de débiteur. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Cela décrit la <b>confusion</b> (art. 118 CO), pas l'impossibilité subséquente."}, {"id": 172, "t": 2, "vf": true, "q": "VRAI ou FAUX ?\n\n« L'exercice des droits civils signifie la capacité d'être sujet de droit. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Cela, c'est la <b>jouissance</b>. L'<b>exercice</b> = capacité de s'engager soi-même (majorité + discernement)."}, {"id": 173, "t": 2, "vf": true, "q": "VRAI ou FAUX ?\n\n« Pour une personne physique, l'exercice des droits civils commence à la naissance et se termine par la mort. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>C'est la <b>jouissance</b> qui va de la naissance au décès. L'exercice ne débute qu'à la <b>majorité</b> avec discernement."}, {"id": 174, "t": 2, "vf": true, "q": "VRAI ou FAUX ?\n\n« Un enfant mineur est un sujet de droit, mais il ne peut pas, par sa seule volonté, créer des droits ou s'engager. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Il a la <b>jouissance</b> (sujet de droit) mais non l'<b>exercice</b> des droits civils."}, {"id": 175, "t": 16, "vf": true, "q": "VRAI ou FAUX ?\n\n« La demeure qualifiée du débiteur n'est applicable qu'aux contrats unilatéraux. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>La demeure qualifiée (art. 107-109 CO) s'applique aux contrats <b>synallagmatiques (bilatéraux)</b>."}, {"id": 176, "t": 16, "vf": true, "q": "VRAI ou FAUX ?\n\n« La quittance est une déclaration écrite du créancier reconnaissant avoir reçu une prestation déterminée. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Définition exacte de la quittance."}, {"id": 177, "t": 10, "vf": true, "q": "VRAI ou FAUX ?\n\n« Lorsque la chose vendue a péri avant la conclusion à l'insu des parties, le contrat est entaché d'une erreur de déclaration. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>Il s'agit d'une <b>impossibilité initiale</b> de la prestation → <b>nullité</b> (art. 20 CO), pas une erreur de déclaration."}, {"id": 178, "t": 10, "vf": true, "q": "VRAI ou FAUX ?\n\n« L'impossibilité de la prestation au moment de la conclusion du contrat entraîne sa nullité. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Impossibilité <b>objective et initiale</b> → contrat nul (art. 20 CO)."}, {"id": 179, "t": 12, "vf": true, "q": "VRAI ou FAUX ?\n\n« L'acte illicite est une condition de la responsabilité contractuelle. »", "a": "<span class=\"verdict vfalse\">FAUX</span><br>L'illicéité est une condition de la responsabilité <b>délictuelle</b> (art. 41). En contractuel : violation du <b>contrat</b> (+ préjudice, causalité, faute présumée)."}, {"id": 180, "t": 12, "vf": true, "q": "VRAI ou FAUX ?\n\n« Une violation du contrat est une condition de la responsabilité contractuelle. »", "a": "<span class=\"verdict vtrue\">VRAI</span><br>Oui : préjudice + violation d'une obligation contractuelle + causalité + faute présumée (art. 97 CO)."}, {"id": 181, "t": 1, "q": "Qu'est-ce que la justice commutative et la justice distributive ?", "a": "Deux faces de l'idée de justice. La <b>justice commutative</b> se rapporte aux droits fondamentaux et à l'égalité dans les échanges (équilibre des prestations). La <b>justice distributive</b> concerne la répartition des biens et charges entre les membres de la société selon leurs mérites/besoins."}, {"id": 182, "t": 1, "q": "Droit objectif vs droit subjectif : définitions précises.", "a": "<b>Droit objectif</b> = l'ensemble des règles de droit (le « droit » comme système de normes).<br><b>Droit subjectif</b> = la prérogative individuelle qu'une personne tire de ce système (ex. le droit de propriété, une créance)."}, {"id": 183, "t": 2, "q": "Qui détermine qui peut être sujet de droit ?", "a": "C'est l'<b>ordre juridique</b> (le droit objectif) qui détermine qui peut être sujet de droit — pas la volonté des individus."}, {"id": 184, "t": 2, "q": "Une chose peut-elle être titulaire d'un droit subjectif ?", "a": "Non. Une chose n'est jamais sujet de droit : elle ne peut être que l'<b>objet</b> d'un droit subjectif (un moyen, jamais un but)."}, {"id": 186, "t": 3, "q": "Quels sont les deux buts de la sanction de la règle de droit ?", "a": "1) Un but de <b>prévention et de punition</b> ;<br>2) Un but de <b>réparation</b>."}, {"id": 187, "t": 3, "q": "Que retrouve-t-on de la structure bipartite de la règle dans un jugement ?", "a": "On y retrouve une partie « <b>fait</b> » (les conditions/hypothèses) et une partie « <b>droit</b> » (l'effet juridique attaché)."}, {"id": 188, "t": 4, "q": "Qu'est-ce qu'un revirement de jurisprudence ?", "a": "Un <b>changement de pratique judiciaire</b> provoqué par une nouvelle décision allant à l'encontre des décisions rendues jusqu'alors. Rare en droit suisse car il peut nuire à la <b>sécurité du droit</b> et créer une inégalité de traitement."}, {"id": 189, "t": 4, "q": "Distinguez lacune proprement dite et silence qualifié (lacune impropre).", "a": "<b>Lacune proprement dite</b> : la loi ne règle pas une question qu'elle devrait régler → le juge la comble (art. 1 al. 2 CC).<br><b>Silence qualifié / lacune impropre</b> : le législateur a <b>intentionnellement</b> résolu la question par la négative → le juge ne peut PAS la combler."}, {"id": 190, "t": 4, "q": "Que permet l'art. 4 CC (équité) et en quoi diffère-t-il de l'art. 1 CC ?", "a": "L'art. 4 CC confère au juge un <b>pouvoir d'appréciation</b> : statuer selon les règles du droit et de l'<b>équité</b> quand la loi l'y invite. À distinguer de l'<b>interprétation</b> de la loi (art. 1 CC) : ici le juge précise le contenu normatif dans un cas concret, sur invitation du législateur."}, {"id": 191, "t": 4, "q": "Qu'est-ce que l'élément objectif (corpus) et l'élément subjectif (animus) de la coutume ?", "a": "<b>Corpus</b> : pratique longue, constante, uniforme et généralisée.<br><b>Animus</b> : conviction que cette pratique est juridiquement obligatoire (<i>opinio iuris</i>)."}, {"id": 192, "t": 4, "q": "Quel est le principe d'attribution dans l'État fédéral suisse ?", "a": "La <b>Confédération</b> n'a que les compétences que lui attribue la <b>Constitution</b> ; les <b>cantons</b> conservent les compétences <b>résiduelles</b> (générales)."}, {"id": 193, "t": 4, "q": "Citez les quatre méthodes d'interprétation de la loi.", "a": "<b>Littérale</b> (texte), <b>systématique</b> (place dans l'ordre juridique), <b>historique</b> (volonté du législateur) et <b>téléologique</b> (but de la norme)."}, {"id": 194, "t": 4, "q": "Qu'est-ce que l'analogie ?", "a": "L'<b>application d'une règle à un cas non prévu</b> par elle mais <b>similaire</b> à ceux qu'elle vise. Sert notamment à combler une lacune proprement dite."}, {"id": 195, "t": 5, "q": "Quel est le critère des sujets pour distinguer droit public et droit privé ?", "a": "Le droit public régit les rapports impliquant au moins un <b>sujet souverain</b> (État, collectivité). Critiqué car l'État peut aussi agir en droit privé (ex. un contrat de bail)."}, {"id": 196, "t": 5, "q": "Quel est le critère formel (organique) de distinction droit public / privé ?", "a": "<b>Droit public</b> = règles dont l'application est assurée par des <b>organes de l'État</b>.<br><b>Droit privé</b> = application laissée à l'<b>initiative des parties</b>."}, {"id": 197, "t": 5, "q": "Quelle est l'importance pratique de la distinction droit public / droit privé ?", "a": "Elle détermine la <b>compétence des tribunaux</b> (judiciaires vs administratifs), l'étendue de l'<b>autonomie de la volonté</b> (plus large en droit privé) et le fait que les prescriptions d'<b>ordre public</b> ne peuvent être écartées par convention."}, {"id": 198, "t": 5, "q": "Citez d'autres divisions du droit (au-delà de public/privé et matériel/formel).", "a": "Droit <b>national / international</b> ; droit <b>objectif / droits subjectifs</b> ; droit <b>écrit / non écrit</b> (coutume)."}, {"id": 199, "t": 6, "q": "Que garantit l'art. 28 Cst. (liberté syndicale) ?", "a": "Le droit de se <b>syndiquer</b> et de mener des <b>actions syndicales</b> (grève, lock-out), dans les limites légales."}, {"id": 200, "t": 6, "q": "Distinguez crimes, délits et contraventions (gravité de l'infraction).", "a": "<b>Crime</b> : peine privative de liberté <b>> 3 ans</b>.<br><b>Délit</b> : peine privative de liberté <b>≤ 3 ans</b> ou peine pécuniaire.<br><b>Contravention</b> : <b>amende</b>."}, {"id": 201, "t": 6, "q": "Quelle est la sanction maximale de la responsabilité pénale de l'entreprise (art. 102 CP) ?", "a": "Une peine pécuniaire pouvant aller jusqu'à <b>5 millions de CHF</b>."}, {"id": 202, "t": 6, "q": "Pour quelles infractions l'entreprise est-elle responsable même si une personne physique est identifiable (art. 102 al. 2 CP) ?", "a": "<b>Blanchiment</b>, <b>corruption</b>, <b>financement du terrorisme</b> et <b>crime organisé</b> : la responsabilité de l'entreprise est alors <b>cumulative</b> (en plus de celle de la personne physique)."}, {"id": 204, "t": 6, "q": "Quelles sont les voies de recours contre une décision administrative ?", "a": "Recours interne (<b>hiérarchique</b>) → recours au <b>tribunal administratif</b> → recours au <b>TF</b> (recours en matière de droit public)."}, {"id": 205, "t": 7, "q": "Que prévoit l'art. 11 CC sur le début et la fin de la jouissance des droits civils ?", "a": "La jouissance des droits civils commence à la <b>naissance</b> (vivante) et se termine au <b>décès</b>. L'<b>enfant conçu</b> est présumé né s'il y va de son intérêt (sous condition qu'il naisse vivant)."}, {"id": 206, "t": 7, "q": "Peut-on avoir plusieurs domiciles (art. 23 CC) ?", "a": "Non. Le domicile = lieu où la personne réside avec l'<b>intention de s'y établir</b>. Le <b>pluralité de domiciles est impossible</b> : nul ne peut avoir en même temps plusieurs domiciles."}, {"id": 207, "t": 7, "q": "Que protègent respectivement l'art. 27 et l'art. 28 CC ?", "a": "<b>Art. 27 CC</b> : protection contre soi-même → nullité des engagements <b>excessifs</b> aliénant la liberté.<br><b>Art. 28 CC</b> : protection contre les tiers → action en <b>cessation, constatation ou réparation</b> contre les atteintes illicites à la personnalité."}, {"id": 208, "t": 7, "q": "Comparez la responsabilité dans la société simple, la SNC et la société en commandite.", "a": "<b>Société simple</b> (530 CO) : pas de personnalité, responsabilité personnelle et solidaire.<br><b>SNC</b> (552 CO) : tous les associés répondent <b>indéfiniment et solidairement</b>.<br><b>Commandite</b> (594 CO) : commandité = resp. <b>illimitée</b> ; commanditaire = resp. <b>limitée à son apport</b>."}, {"id": 210, "t": 7, "q": "Quand l'inscription au registre du commerce est-elle obligatoire pour l'entreprise individuelle ?", "a": "Dès que le <b>chiffre d'affaires atteint 100 000 CHF</b>. L'exploitant répond sur l'<b>ensemble de ses biens</b> (pas de personnalité morale)."}, {"id": 211, "t": 7, "q": "Quelles sont les trois parentèles de la succession légale ?", "a": "<b>1re parentèle</b> : les descendants.<br><b>2e parentèle</b> : père et mère + leurs descendants (frères/sœurs, neveux/nièces).<br><b>3e parentèle</b> : grands-parents + leurs descendants. À défaut d'héritier et de conjoint, la succession revient à l'<b>État</b> (canton/commune)."}, {"id": 212, "t": 7, "q": "Distinguez le testament olographe et le testament public.", "a": "<b>Olographe</b> : rédigé <b>entièrement à la main</b>, daté et signé par le testateur.<br><b>Public</b> : reçu par un <b>officier public</b> en présence de <b>2 témoins</b>."}, {"id": 213, "t": 7, "q": "Quelles sont les réserves héréditaires (droit actuel) ?", "a": "<b>Descendants</b> : 1/2 de leur part légale.<br><b>Conjoint / partenaire enregistré</b> : 1/2 de sa part légale.<br>Le reste = <b>quotité disponible</b>, librement attribuable par le testateur."}, {"id": 214, "t": 7, "q": "Qu'est-ce qu'un pacte successoral (art. 512 CC) ?", "a": "Une <b>convention</b> conclue devant officier public (et 2 témoins) : le défunt peut y renoncer à sa liberté de tester ou y promettre des avantages successoraux. Contrairement au testament, il ne peut être révoqué unilatéralement."}, {"id": 215, "t": 7, "q": "Qu'est-ce que la dévolution successorale ?", "a": "L'ensemble des opérations qui déterminent comment l'héritier <b>reçoit</b> la succession et comment se déroule le <b>partage</b>. Particularité suisse : les héritiers acquièrent la succession <b>de plein droit</b> au décès (saisine), avec faculté de répudier."}, {"id": 216, "t": 7, "q": "Quels sont les trois attributs de la propriété (art. 641 CC) ?", "a": "<b>Usus</b> (user de la chose), <b>fructus</b> (en percevoir les fruits) et <b>abusus</b> (en disposer). C'est le droit le plus complet sur une chose ; limite : l'<b>abus de droit</b> est interdit."}, {"id": 217, "t": 7, "q": "Distinguez copropriété par quote-part et propriété commune.", "a": "<b>Copropriété par quote-part</b> (646 CC) : chacun a une part idéale dont il peut disposer.<br><b>Propriété commune</b> (652 CC) : les communistes sont propriétaires du tout ensemble, sans quote-part disponible (ex. société simple, communauté héréditaire)."}, {"id": 218, "t": 7, "q": "Qu'est-ce qu'une chose au sens des droits réels (meubles/immeubles) ?", "a": "Toute <b>chose corporelle</b> susceptible de <b>maîtrise effective</b> de l'homme, c'est-à-dire susceptible d'<b>appropriation</b>. Certaines choses (air, haute mer…) ne le sont pas."}, {"id": 220, "t": 7, "q": "Qu'est-ce que la maxime des débats en procédure civile ?", "a": "Ce sont les <b>parties</b> qui <b>allèguent et prouvent</b> les faits ; le juge ne peut aller au-delà de ce qui est allégué. (S'oppose à la maxime inquisitoire.)"}, {"id": 221, "t": 7, "q": "Comment fonctionne l'opposition à un commandement de payer (LP) ?", "a": "Le débiteur peut faire <b>opposition dans les 10 jours</b> ; le créancier doit alors obtenir la <b>mainlevée</b> (provisoire ou définitive) prononcée par le juge pour poursuivre."}, {"id": 222, "t": 8, "q": "Quelles sont les trois composantes d'un rapport d'obligation ?", "a": "La <b>créance</b> (droit du créancier d'exiger), la <b>dette</b> (devoir du débiteur d'exécuter) et la <b>prestation</b> (l'objet : un faire ou un ne pas faire)."}, {"id": 223, "t": 8, "q": "Quelles qualités doit présenter la prestation ?", "a": "Elle doit être <b>possible</b>, <b>licite</b>, <b>déterminée ou déterminable</b> et <b>patrimoniale</b> (ou au moins susceptible d'évaluation économique)."}, {"id": 224, "t": 8, "q": "Distinguez prestation de dare, facere et non facere.", "a": "<b>Dare</b> : donner/transférer une chose. <b>Facere</b> : accomplir un fait (faire). <b>Non facere</b> : s'abstenir (ne pas faire). Les obligations portent sur un faire au sens large ou une abstention."}, {"id": 225, "t": 8, "q": "Pourquoi la créance est-elle un droit relatif et la propriété un droit absolu ?", "a": "La <b>créance</b> n'est opposable qu'au <b>débiteur</b> (rapport entre deux personnes). Le <b>droit réel</b> (propriété) est opposable <b>erga omnes</b> (à tous)."}, {"id": 227, "t": 9, "q": "Qu'est-ce qu'un acte juridique unilatéral ? Donnez des exemples.", "a": "La déclaration de volonté d'une <b>seule</b> partie produisant des effets de droit : ex. <b>résiliation</b> d'un contrat, <b>testament</b>, <b>promesse publique de récompense</b>, offre publique."}, {"id": 228, "t": 9, "q": "Qu'est-ce que la gestion d'affaires sans mandat (art. 419 ss CO) ?", "a": "Le fait de <b>s'immiscer dans les affaires d'autrui</b> sans y être autorisé. Le gérant doit agir au mieux des intérêts du maître et restituer les avantages ; c'est un <b>quasi-contrat</b>."}, {"id": 229, "t": 9, "q": "Classez les sources d'obligations en sources volontaires et légales.", "a": "<b>Volontaires</b> : contrat, acte juridique unilatéral, quasi-contrats (gestion d'affaires).<br><b>Légales</b> : responsabilité civile (41 CO) et enrichissement illégitime (62 CO)."}, {"id": 230, "t": 10, "q": "Distinguez contrat commutatif et contrat aléatoire.", "a": "<b>Commutatif</b> : les prestations sont déterminées dès la conclusion.<br><b>Aléatoire</b> : l'étendue d'une prestation dépend du <b>hasard</b> (ex. assurance, jeu)."}, {"id": 231, "t": 10, "q": "Que sont les essentialia negotii ?", "a": "Les <b>éléments objectivement essentiels</b> du contrat sur lesquels l'offre et l'acceptation doivent se correspondre pour qu'il y ait accord (ex. chose et prix dans la vente)."}, {"id": 232, "t": 10, "q": "Quel est le délai d'acceptation d'une offre (art. 5 CO) ?", "a": "Entre <b>présents</b> : acceptation <b>immédiate</b>.<br>Entre <b>absents</b> : dans un <b>délai convenable</b> (le temps nécessaire à l'acheminement et à la réflexion)."}, {"id": 234, "t": 10, "q": "Quelle est la sanction du non-respect d'une forme légale (art. 11 al. 2 CO) ?", "a": "La <b>nullité</b> de l'acte. La forme exigée par la loi est une condition de validité, pas une simple formalité de preuve."}, {"id": 235, "t": 10, "q": "Distinguez interprétation, complètement et correction du contrat.", "a": "<b>Interprétation</b> : rechercher la volonté réelle des parties (18 CO), à défaut la bonne foi.<br><b>Complètement</b> : combler une lacune par la loi dispositive ou la règle hypothétique.<br><b>Correction</b> : adapter le contrat à un changement de circonstances (imprévision)."}, {"id": 236, "t": 10, "q": "Distinguez l'erreur essentielle, le dol et la crainte fondée.", "a": "<b>Erreur essentielle</b> (23-27 CO) : fausse représentation sur un élément essentiel.<br><b>Dol</b> (28 CO) : <b>tromperie intentionnelle</b>.<br><b>Crainte fondée</b> (29-30 CO) : consentement extorqué par une <b>menace</b> grave et imminente. Tous donnent lieu à <b>invalidation</b> (action en 1 an)."}, {"id": 237, "t": 10, "q": "Qu'est-ce que la lésion (art. 21 CO) ?", "a": "Une <b>disproportion manifeste</b> entre les prestations, <b>exploitée</b> par une partie qui profite de la gêne, de la légèreté ou de l'inexpérience de l'autre. Sanction : réduction ou résiliation (action dans l'année)."}, {"id": 239, "t": 11, "q": "Quelles sont les quatre conditions de la responsabilité délictuelle (art. 41 CO) ?", "a": "1) Un <b>dommage</b> ;<br>2) un <b>lien de causalité</b> (naturelle + adéquate) ;<br>3) l'<b>illicéité</b> ;<br>4) une <b>faute</b> (ou une norme spéciale de responsabilité objective)."}, {"id": 240, "t": 11, "q": "Distinguez perte effective et manque à gagner dans le dommage patrimonial.", "a": "<b>Perte effective (damnum emergens)</b> : diminution actuelle du patrimoine.<br><b>Manque à gagner (lucrum cessans)</b> : gain futur que la victime aurait réalisé sans l'acte dommageable. (+ frais supplémentaires.)"}, {"id": 241, "t": 11, "q": "Qu'est-ce que le tort moral (art. 47-49 CO) ?", "a": "La réparation en argent d'une <b>atteinte à la personnalité</b> (douleur, souffrance, humiliation), accordée lorsque la gravité de l'atteinte le justifie."}, {"id": 242, "t": 11, "q": "Quels faits peuvent interrompre le lien de causalité ?", "a": "Un fait <b>naturel extraordinaire</b> (force majeure), la <b>faute grave d'un tiers</b> ou la <b>faute grave du lésé</b>, lorsqu'ils relèguent le comportement initial à l'arrière-plan."}, {"id": 243, "t": 11, "q": "Citez les faits justificatifs excluant l'illicéité.", "a": "Le <b>consentement du lésé</b>, la <b>légitime défense</b> (52 al. 1 CO), l'<b>état de nécessité</b> (52 al. 2 CO) et l'<b>exercice d'un droit/devoir</b> (ex. droit de correction)."}, {"id": 244, "t": 11, "q": "Distinguez les responsabilités objectives des art. 55 et 58 CO.", "a": "<b>Art. 55 CO (employeur)</b> : responsabilité pour ses travailleurs, fondée sur une <b>faute présumée</b> (peut se libérer en prouvant sa diligence — preuve libératoire).<br><b>Art. 58 CO (propriétaire d'ouvrage)</b> : responsabilité <b>causale simple</b> pour défaut de construction/entretien, sans preuve libératoire de diligence."}, {"id": 245, "t": 11, "q": "En cas de pluralité de responsables, comment fonctionne la réparation ?", "a": "Ils répondent <b>solidairement</b> envers le lésé ; entre eux, un <b>recours</b> est exercé selon la gravité respective de leur faute (et leur part de responsabilité)."}, {"id": 246, "t": 12, "q": "En quoi la faute diffère-t-elle entre responsabilité délictuelle et contractuelle ?", "a": "<b>Délictuelle</b> : faute <b>prouvée</b> par le lésé.<br><b>Contractuelle</b> (97 CO) : faute <b>présumée</b> ; c'est au débiteur de prouver qu'aucune faute ne lui est imputable (renversement du fardeau)."}, {"id": 247, "t": 12, "q": "Quels sont les délais de prescription contractuelle (art. 127-128a CO) ?", "a": "<b>10 ans</b> en règle générale (127 CO) ; <b>5 ans</b> pour les créances périodiques (loyers, salaires, intérêts — 128 CO) ; <b>3 ans</b> pour les lésions corporelles (128a CO), 20 ans en cas d'atteinte grave/décès."}, {"id": 248, "t": 12, "q": "Le cumul des responsabilités contractuelle et délictuelle est-il admis ?", "a": "Oui : si les conditions des deux sont réunies, le lésé peut <b>choisir le fondement le plus favorable</b> (concours d'actions)."}, {"id": 249, "t": 13, "q": "Quelles sont les quatre conditions de l'enrichissement illégitime ?", "a": "1) Un <b>enrichissement</b> (augmentation ou non-diminution du patrimoine) ;<br>2) un <b>appauvrissement</b> corrélatif d'autrui ;<br>3) une <b>connexité</b> entre les deux ;<br>4) l'<b>absence de cause valable</b>."}, {"id": 250, "t": 13, "q": "De quoi dépend l'étendue de la restitution (art. 64 CO) ?", "a": "De la <b>bonne ou mauvaise foi</b> de l'enrichi. De bonne foi, il ne restitue que l'<b>enrichissement actuel</b> (subsistant) ; de mauvaise foi, il répond aussi de ce dont il s'est dessaisi."}, {"id": 251, "t": 13, "q": "Quels sont les délais de prescription de l'action en enrichissement (art. 67 CO) ?", "a": "<b>3 ans</b> dès la connaissance du droit à restitution (délai relatif) et <b>10 ans</b> dès la naissance du droit (délai absolu)."}, {"id": 253, "t": 14, "q": "Comment fonctionne le recours entre codébiteurs solidaires (art. 148 CO) ?", "a": "Le codébiteur qui a payé plus que sa part interne peut se <b>retourner contre les autres</b> pour leur part respective. À défaut de convention, la dette se répartit par <b>parts égales</b>."}, {"id": 254, "t": 14, "q": "Distinguez la condition et le terme.", "a": "La <b>condition</b> porte sur un événement futur et <b>incertain</b>. Le <b>terme</b> porte sur un événement futur et <b>certain</b> (une date, l'écoulement du temps)."}, {"id": 255, "t": 14, "q": "Distinguez la clause pénale, les arrhes et le dédit.", "a": "<b>Clause pénale</b> (160-163 CO) : somme due en cas d'inexécution/retard, s'ajoute en principe à l'exécution.<br><b>Arrhes</b> (158 CO) : versées à la conclusion ; celui qui se dédit les perd (ou rend le double).<br><b>Dédit</b> (158 al. 3 CO) : droit de rompre le contrat moyennant paiement."}, {"id": 256, "t": 15, "q": "Quelle est la forme requise pour la cession de créance (art. 165 CO) ?", "a": "La <b>forme écrite</b> (acte signé du cédant). Le consentement du débiteur n'est <b>pas requis</b>."}, {"id": 257, "t": 15, "q": "Une créance peut-elle toujours être cédée ?", "a": "Non : elle doit être <b>cessible</b>. L'incessibilité peut résulter de la <b>loi</b>, de la <b>convention</b> (pactum de non cedendo) ou de la <b>nature</b> de la créance. À défaut, la cession est nulle et le cédant reste créancier."}, {"id": 258, "t": 15, "q": "Quelles exceptions le débiteur cédé conserve-t-il (art. 169 CO) ?", "a": "Le débiteur peut opposer au <b>cessionnaire</b> toutes les exceptions qu'il avait contre le <b>cédant</b> au moment où il a eu connaissance de la cession."}, {"id": 260, "t": 15, "q": "Jusqu'à quand le débiteur cédé se libère-t-il valablement en payant au cédant (art. 167 CO) ?", "a": "Tant qu'il n'a pas eu connaissance de la cession (<b>avant notification ou reconnaissance</b>), il se libère valablement en payant à l'<b>ancien créancier (cédant)</b>."}, {"id": 261, "t": 16, "q": "Quelle est la règle générale du lieu d'exécution (art. 74 CO) pour une dette d'argent ?", "a": "Les dettes d'<b>argent</b> sont <b>portables</b> : le débiteur doit les acquitter au <b>domicile du créancier</b>. (En revanche, la règle générale pour les autres dettes est qu'elles sont <b>quérables</b>.)"}, {"id": 262, "t": 16, "q": "Quel est le taux d'intérêt moratoire subsidiaire (art. 104 al. 1 CO) ?", "a": "<b>5 % par an</b>, sauf taux conventionnel ou usuel différent."}, {"id": 263, "t": 17, "q": "Qu'est-ce que la remise de dette (art. 115 CO) et que requiert-elle ?", "a": "La <b>convention</b> par laquelle le créancier renonce gratuitement à sa créance. Elle exige l'<b>accord du débiteur</b> : la renonciation purement unilatérale n'est pas reconnue en droit suisse."}, {"id": 264, "t": 17, "q": "Qu'est-ce que la novation (art. 116 CO) ? Se présume-t-elle ?", "a": "Le remplacement d'une obligation par une nouvelle, qui <b>éteint l'ancienne</b>. Elle <b>ne se présume pas</b> : elle doit résulter clairement de la volonté des parties ou de l'incompatibilité des obligations."}, {"id": 265, "t": 17, "q": "Qu'advient-il de la contre-prestation en cas d'impossibilité subséquente non fautive (art. 119 CO) ?", "a": "L'obligation devenue impossible s'éteint ; dans un contrat synallagmatique, l'<b>obligation corrélative s'éteint aussi</b>. Le risque pèse en principe sur le <b>débiteur</b> de la prestation devenue impossible (art. 119 al. 2 CO)."}, {"id": 266, "t": 17, "q": "Quelles sont les 4 conditions de la compensation (art. 120 CO) ?", "a": "<b>Réciprocité</b> (chacun créancier et débiteur de l'autre), <b>fongibilité</b> (objets de même genre), <b>exigibilité</b> de la créance compensante, <b>liquidité/déterminabilité</b>. + une <b>déclaration</b> : la compensation n'opère pas de plein droit."}, {"id": 267, "t": 17, "q": "Quelles créances échappent à la compensation ?", "a": "Notamment les créances <b>insaisissables</b>, les créances d'<b>aliments</b> et celles que la loi déclare non compensables, ainsi que celles dont le débiteur refuse la compensation lorsqu'elle porte sur un dépôt/restitution illicite."}, {"id": 268, "t": 17, "q": "Quelles sont les conditions de la théorie de l'imprévision (clausula rebus sic stantibus) ?", "a": "Reconnue par le TF, non codifiée : il faut des <b>circonstances imprévisibles et extraordinaires</b>, une <b>modification fondamentale</b> des bases du contrat et une <b>inéquité grave</b> (déséquilibre devenant insupportable). Le juge adapte ou résout le contrat."}, {"id": 269, "t": 4, "q": "Comment la Constitution fédérale est-elle modifiée (initiative et référendum) ?", "a": "Toute révision est soumise au <b>référendum obligatoire</b> (vote du peuple ET des cantons — double majorité, art. 140 Cst.). Au niveau fédéral, l'<b>initiative populaire</b> ne porte QUE sur la Constitution (pas une loi/ordonnance) et requiert <b>100 000 signatures</b> (art. 138-139 Cst.). Ex. : l'initiative « Minder »."}, {"id": 270, "t": 6, "q": "Quelles sont les deux formes de culpabilité pénale (art. 12 CP) ?", "a": "L'<b>intention</b> (al. 2) = conscience et volonté de commettre l'infraction — comprend le <b>dol direct</b> (résultat accepté comme corollaire inévitable) et le <b>dol éventuel</b> (résultat envisagé comme possible et accepté). La <b>négligence</b> (al. 3) = manque des précautions commandées par les circonstances."}, {"id": 271, "t": 6, "q": "Distinguez les peines et les mesures en droit pénal.", "a": "La <b>peine</b> sanctionne la faute (pécuniaire, TIG, privative de liberté). La <b>mesure</b> (art. 56 ss CP) vise à <b>soigner l'individu</b> ou <b>protéger la société</b> : mesures thérapeutiques (troubles mentaux, addiction), internement, etc. Elle se fonde sur la dangerosité, pas (uniquement) sur la culpabilité."}, {"id": 272, "t": 7, "q": "Quels sont les trois droits réels restreints ?", "a": "1) La <b>servitude</b> (usage/jouissance d'une chose, ex. droit de passage, usufruit — seule servitude pouvant porter sur meuble et immeuble, art. 745 CC) ;<br>2) la <b>charge foncière</b> (oblige le propriétaire d'un fonds à des prestations, art. 782 CC) ;<br>3) le <b>droit de gage</b> (garantie réelle : hypothèque sur immeuble, art. 793 ss CC, ou nantissement sur meuble, art. 884 ss CC)."}, {"id": 273, "t": 7, "q": "Qu'est-ce que la possession (art. 919 CC) ?", "a": "La <b>maîtrise de fait</b> sur une chose. Elle existe par le simple fait que la chose peut être maîtrisée, <b>indépendamment de tout droit</b> sur elle. Elle bénéficie d'une protection (interdiction de la violence, besoin d'ordre)."}, {"id": 274, "t": 7, "q": "Qu'est-ce que le droit international privé (LDIP) ?", "a": "Il vise les rapports de droit privé à <b>caractère international</b> (plusieurs législations en concours). Il détermine le <b>juge compétent</b>, le <b>droit applicable</b> et les conditions de <b>reconnaissance/exécution</b> d'un jugement étranger. En Suisse : régi par la <b>LDIP</b> et des conventions internationales."}, {"id": 275, "t": 7, "q": "Qu'est-ce que l'arbitrage ?", "a": "Une <b>voie juridictionnelle privée</b> : sur la base d'une <b>convention d'arbitrage</b>, les parties confient à des <b>arbitres</b> le soin de trancher un litige à la place des tribunaux étatiques, par une <b>sentence arbitrale</b>. Objet limité aux prétentions de droit privé dont les parties ont la libre disposition (art. 354 CPC)."}, {"id": 276, "t": 7, "q": "Comment se détermine la compétence du tribunal en procédure civile ?", "a": "Le juge ne tranche que s'il est compétent. On distingue la compétence <b>matérielle</b> (quel type de tribunal) et la compétence <b>territoriale</b> (le « <b>for</b> » = lieu où l'affaire est jugée). Le for du <b>domicile du défendeur</b> est la règle la plus courante."}, {"id": 277, "t": 10, "q": "Qu'est-ce que la promesse de contracter / précontrat (art. 22 CO) ?", "a": "Un <b>contrat portant sur la conclusion future</b> d'un autre contrat : une partie (ou les deux) s'engage à conclure ultérieurement le <b>contrat principal</b>."}, {"id": 278, "t": 10, "q": "Qu'est-ce que l'appel d'offres (art. 7 CO) et la promesse publique (art. 8 CO) ?", "a": "<b>Appel d'offres</b> (art. 7 CO) : l'envoi de tarifs/prix courants ou l'exposition de marchandises avec prix n'est en principe <b>pas une offre</b> ferme mais une invitation à offrir.<br><b>Promesse publique</b> (art. 8 CO) : celui qui promet publiquement une récompense doit la verser, même à qui a agi sans connaître la promesse."}, {"id": 279, "t": 10, "q": "Qu'est-ce que la lettre de confirmation (droit commercial) ?", "a": "Une lettre par laquelle une partie résume un accord prétendument conclu. Si elle correspond à l'accord, elle a un <b>effet probatoire</b>. Entre commerçants, elle peut avoir un <b>effet constitutif</b> : le silence du destinataire qui aurait dû réagir vaut acceptation de son contenu."}, {"id": 280, "t": 10, "q": "Qu'est-ce que la fraude à la loi ?", "a": "Recourir à un moyen <b>apparemment légitime</b> (norme « éludante ») pour atteindre un résultat <b>prohibé</b> par une autre norme (norme « éludée »). Sanctionnée via l'<b>interdiction de l'abus de droit</b> (art. 2 al. 2 CC) ; nullité si le but de la norme éludée le justifie."}, {"id": 281, "t": 10, "q": "Distinguez nullité absolue, nullité partielle et nullité relative.", "a": "<b>Absolue</b> : vice grave (objet impossible/illicite/immoral) → nullité <b>totale</b>, invocable par tous et relevée d'office.<br><b>Partielle</b> (art. 20 al. 2 CO) : seules les clauses viciées tombent, sauf si le contrat n'aurait pas été conclu sans elles.<br><b>Relative</b> : quand la norme protège une seule partie → <b>seule la partie protégée</b> peut invoquer le vice."}, {"id": 282, "t": 10, "q": "Qu'est-ce que le contrat avec soi-même et la double représentation ?", "a": "<b>Contrat avec soi-même</b> : une personne conclut seule, agissant à la fois comme représentant d'autrui et en son nom personnel.<br><b>Double représentation</b> : une personne conclut seule, comme représentant des <b>deux</b> parties. Tous deux présentent un <b>danger de conflit d'intérêts</b> (en principe prohibés, sauf garanties)."}, {"id": 283, "t": 10, "q": "Quels sont les trois rapports de la stipulation pour autrui (art. 112 CO) ?", "a": "<b>Rapport de couverture (provision)</b> : entre promettant et stipulant.<br><b>Rapport de prestation</b> : entre promettant et tiers bénéficiaire.<br><b>Rapport de valeur</b> : entre stipulant et bénéficiaire (la raison pour laquelle le stipulant gratifie le tiers)."}, {"id": 284, "t": 10, "q": "Qu'est-ce que la subrogation (art. 110 CO) ?", "a": "Le <b>transfert légal de la créance</b> à celui qui paie : le paiement n'éteint pas la créance mais la transfère au tiers payeur. Deux cas (art. 110 CO) : le tiers qui paie pour <b>libérer un gage</b> dont il est titulaire, et le tiers payant <b>avec l'accord</b> du créancier (ex. la caution qui paie est subrogée contre le débiteur)."}, {"id": 285, "t": 10, "q": "Distinguez l'erreur de déclaration et l'erreur sur les motifs (art. 24 CO).", "a": "<b>Erreur de déclaration</b> : décalage entre la volonté réelle et la déclaration (lapsus, erreur sur la nature, l'objet, la quantité). Toujours essentielle.<br><b>Erreur sur les motifs (erreur de base)</b> : erreur sur un fait que la partie tenait pour un élément nécessaire du contrat selon la bonne foi en affaires ; essentielle seulement à ces conditions."}, {"id": 286, "t": 11, "q": "Qu'est-ce que la responsabilité du fait des produits (LRFP) ?", "a": "Le <b>fabricant</b> répond <b>sans faute</b> (responsabilité causale) du dommage causé par le <b>défaut</b> d'un produit (atteinte à une personne ou à une chose privée). C'est une responsabilité objective aggravée, indépendante de tout lien contractuel avec la victime."}, {"id": 287, "t": 3, "q": "Quels sont les trois types de règles de droit (impérative, dispositive, semi-impérative) ?", "a": "<b>Impérative</b> : s'applique à tous, on ne peut y déroger.<br><b>Dispositive</b> : ne s'applique que si les parties n'ont pas convenu autre chose (« sauf accord contraire »).<br><b>Semi-impérative</b> : on ne peut y déroger qu'en faveur de la <b>partie la plus faible</b> (ex. travailleur, locataire)."}, {"id": 288, "t": 3, "q": "Quels sont les deux buts (formel et matériel) d'une règle de droit ?", "a": "<b>But formel</b> : simplifier la connaissance et l'application du droit.<br><b>But matériel</b> : inciter les destinataires à agir ou à s'abstenir."}, {"id": 289, "t": 4, "q": "Quelles sont les quatre conceptions de l'État ?", "a": "<b>Patrimoniale</b> : l'État personnifié en une personne (le Roi).<br><b>Pacte social</b> : les citoyens cèdent une part de leurs droits contre une liberté garantie.<br><b>Libérale</b> : la liberté n'est pas absolue, elle s'arrête où commence celle d'autrui.<br><b>Étatiste</b> : les besoins de l'État priment sur l'individu. (Révision de 1999 : Constitution libérale + État providence.)"}, {"id": 290, "t": 4, "q": "Quelles sont les grandes étapes de la procédure législative fédérale ?", "a": "1) <b>Initiative législative</b> ; 2) <b>avant-projet</b> ; 3) <b>procédure de consultation</b> ; 4) <b>projet + message</b> à l'Assemblée fédérale ; 5) <b>délibération et vote</b> ; 6) <b>publication</b> dans la Feuille fédérale (délai de référendum) ; 7) entrée en vigueur."}, {"id": 291, "t": 4, "q": "Distinguez référendum obligatoire, référendum facultatif et initiative populaire (seuils).", "a": "<b>Référendum obligatoire</b> : toute révision de la Constitution (vote du peuple ET des cantons).<br><b>Référendum facultatif</b> : contre une loi fédérale, si <b>50 000 signatures</b> ou <b>8 cantons</b> le demandent.<br><b>Initiative populaire</b> : <b>100 000 signatures en 18 mois</b>, et seulement pour modifier la Constitution."}, {"id": 292, "t": 4, "q": "Distinguez décisions d'espèce et décisions de principe (jurisprudence).", "a": "<b>Décision d'espèce</b> : applique la loi au cas, sans apporter de complément général.<br><b>Décision de principe</b> : le juge tient un raisonnement <b>transposable</b> à d'autres cas — sa portée dépasse le cas particulier."}, {"id": 293, "t": 5, "q": "Quelle est la théorie formelle de distinction droit public / privé ?", "a": "<b>Droit privé</b> : forme <b>contractuelle</b> (les sujets sont libres, dans certaines limites, de régler leur relation).<br><b>Droit public</b> : forme de l'<b>injonction</b> (acte imposé unilatéralement)."}, {"id": 294, "t": 6, "q": "Quels sont les trois objectifs (domaines) du droit administratif ?", "a": "<b>Police</b> : maintien de l'ordre et de la santé publics.<br><b>Institutions sociales</b> : services sociaux, culturels et économiques.<br><b>Financier</b> : gestion des finances publiques."}, {"id": 295, "t": 6, "q": "Quels sont les degrés d'une infraction pénale (consommée, tentative, impossible) ?", "a": "<b>Délit consommé</b> : le résultat se produit.<br><b>Tentative</b> : l'auteur commence l'exécution mais le résultat ne survient pas.<br><b>Délit impossible</b> : le résultat ne pouvait pas se produire (moyen/objet inadéquat). Les <b>actes préparatoires</b> ne sont en principe pas punissables."}, {"id": 296, "t": 6, "q": "Distinguez négligence consciente et négligence inconsciente.", "a": "<b>Consciente</b> : l'auteur envisage la possibilité du résultat mais pense (à tort) qu'il ne se produira pas.<br><b>Inconsciente</b> : l'auteur ne pense même pas aux conséquences de son acte. (À distinguer du <b>dol éventuel</b>, où l'auteur accepte le résultat.)"}, {"id": 297, "t": 6, "q": "Quels sont les trois buts de la peine ?", "a": "<b>Expiation</b> : l'auteur « paie » pour ce qu'il a commis.<br><b>Prévention</b> : dissuader (lui et les autres).<br><b>Amendement</b> : éviter la récidive en favorisant la réinsertion."}, {"id": 298, "t": 6, "q": "Qu'est-ce que l'ordonnance pénale ?", "a": "Une procédure simplifiée lorsque le prévenu <b>admet les faits</b> : le ministère public sanctionne sans procès ordinaire. Plafonds : <b>amende</b>, <b>180 jours-amende</b>, <b>720 h de TIG</b> ou <b>6 mois de peine privative de liberté</b>."}, {"id": 299, "t": 6, "q": "À partir de quel âge s'applique le droit pénal des mineurs ?", "a": "De <b>10 à 18 ans</b> : des peines et mesures particulières, adaptées au mineur, s'appliquent (priorité à l'éducation et à la protection)."}, {"id": 300, "t": 6, "q": "Quelles sont les sources du droit international public ?", "a": "Les <b>conventions / traités</b>, les <b>coutumes internationales</b>, les <b>principes généraux</b> du droit, ainsi que la <b>jurisprudence</b> (notamment de la Cour internationale de Justice) et la <b>doctrine</b>."}, {"id": 301, "t": 7, "q": "Comment se détermine la compétence territoriale (le « for ») selon le type de litige ?", "a": "<b>Dette d'argent</b> : domicile du <b>débiteur</b>.<br><b>Action sur un immeuble</b> : lieu de l'<b>immeuble</b>.<br><b>Succession</b> : dernier domicile du <b>défunt</b>.<br><b>Acte illicite</b> : domicile de la victime, lieu de l'acte ou lieu du résultat (favorise la victime).<br>Pour une entreprise : son <b>siège</b>."}, {"id": 302, "t": 7, "q": "Comment se répartit la compétence matérielle des tribunaux pénaux (selon la gravité) ?", "a": "<b>Tribunal de police</b> : jusqu'à 12 mois de PPL.<br><b>Tribunal correctionnel</b> : jusqu'à 6 ans de PPL.<br><b>Tribunal criminel</b> : au-delà de 6 ans de PPL."}, {"id": 303, "t": 7, "q": "Quelles sont les grandes étapes de la procédure civile ?", "a": "1) <b>Dépôt de la demande</b> (litispendance) ; 2) <b>échange d'écritures</b> (légitimation active/passive) ; 3) <b>instruction préliminaire</b> (fixation de l'objet du litige) ; 4) <b>instruction probatoire</b> (preuves ; fardeau à celui qui allègue) ; 5) <b>jugement</b> (autorité de la chose jugée)."}, {"id": 304, "t": 7, "q": "Distinguez l'appel, le recours et la révision.", "a": "<b>Appel</b> : la cause est rejugée <b>entièrement</b> par l'instance supérieure (nouvelle instruction).<br><b>Recours</b> : voie plus limitée, contre certaines décisions (finales non susceptibles d'appel, actes des autorités).<br><b>Révision</b> (exceptionnelle) : rouvrir un procès clos lorsque des <b>faits nouveaux</b> sont découverts après coup."}, {"id": 305, "t": 7, "q": "Quels sont les avantages et inconvénients de l'arbitrage ?", "a": "<b>Avantages</b> : choix des arbitres, procédure plus <b>rapide</b> et <b>confidentielle</b>, sentence de même valeur qu'un jugement.<br><b>Inconvénients</b> : plus <b>coûteux</b> ; certains litiges en sont exclus (ex. on ne peut pas divorcer par arbitrage)."}, {"id": 306, "t": 7, "q": "Quels sont les moyens de preuve en procédure ?", "a": "La preuve <b>écrite</b> (titres), les <b>témoins</b>, l'<b>expertise</b>, l'<b>inspection locale</b> et l'<b>aveu</b>."}, {"id": 307, "t": 7, "q": "Quelles sont les attaches juridiques d'une personne physique ?", "a": "La <b>parenté</b> (lien de filiation ; ≠ alliance, créée par le mariage), le <b>droit de cité</b> (rattachement à un lieu par l'ascendance, l'adoption, le mariage ou la naturalisation), le <b>domicile</b>, l'<b>état civil</b> et le <b>nom</b>."}, {"id": 308, "t": 7, "q": "Distinguez domicile volontaire et domicile légal (principes de nécessité et d'unité).", "a": "<b>Volontaire</b> : lieu où la personne réside avec l'intention de s'y établir.<br><b>Légal</b> : domicile que la loi attribue (ex. enfant, personne sous curatelle).<br>Deux principes : <b>nécessité</b> (toute personne doit avoir un domicile) et <b>unité</b> (un seul domicile à la fois)."}, {"id": 309, "t": 7, "q": "Quelles sont les conditions de l'exercice des droits civils, et les degrés d'incapacité ?", "a": "Il faut être <b>majeur</b>, <b>capable de discernement</b> et <b>non sous curatelle de portée générale</b>. Le mineur a une <b>incapacité restreinte</b> (il agit par son représentant) ; la personne sans discernement a une <b>incapacité totale</b>."}, {"id": 310, "t": 7, "q": "Que se passe-t-il en cas d'absence de longue durée d'une personne ?", "a": "Si une absence prolongée rend la mort très probable, le juge peut prononcer une <b>déclaration d'absence</b> : tout se passe alors comme si la personne était décédée (ouverture de la succession, etc.)."}, {"id": 311, "t": 7, "q": "Quels sont les objets de la personnalité et les actions ouvertes à la victime d'une atteinte ?", "a": "<b>Objets</b> : vie et intégrité, honneur, sphère intime, image, sphère d'activité économique.<br><b>Actions</b> (art. 28 CC) : <b>prévention</b> (atteinte imminente), <b>cessation</b> (trouble qui dure), <b>constatation</b> du caractère illicite, et <b>dommages-intérêts</b>."}, {"id": 312, "t": 7, "q": "Quelles sont les conditions de constitution d'une personne morale ?", "a": "Un <b>groupement de personnes</b> (ou un patrimoine), une <b>base contractuelle</b>, un <b>but commun</b>, l'<b>inscription au registre du commerce</b>, une <b>organisation</b> (statuts, organes) et le <b>déploiement d'une activité</b> indépendante de ses membres."}, {"id": 313, "t": 7, "q": "Quand commence et finit la personnalité d'une personne morale ?", "a": "Elle <b>commence à l'inscription au registre du commerce</b> et <b>finit à la dissolution</b> (par la loi, décision du juge ou des membres), laquelle entraîne la <b>liquidation</b> du patrimoine. La PM agit par ses <b>organes</b> et peut même être instituée <b>héritière</b>."}, {"id": 314, "t": 7, "q": "Distinguez personnes morales de droit public et de droit privé.", "a": "<b>Droit public</b> : collectivités publiques, établissements de droit public, corporations ecclésiastiques.<br><b>Droit privé</b> : associations, fondations, sociétés (régies par le CC/CO)."}, {"id": 315, "t": 7, "q": "Distinguez parties intégrantes et parties accessoires d'une chose.", "a": "<b>Partie intégrante</b> : élément lié à la chose dont il forme un tout → suit le <b>régime juridique unique</b> de la chose principale.<br><b>Partie accessoire</b> : élément distinct, ayant un lien d'utilité avec la chose principale → peut garder un régime propre."}, {"id": 316, "t": 7, "q": "Quelles distinctions s'appliquent aux choses mobilières (meubles) ?", "a": "<b>Fongibles / non-fongibles</b> (interchangeables selon nombre, poids, mesure ou non).<br><b>Choses de genre / corps certains</b> (« un cheval » / « CE cheval »).<br><b>Consomptibles / non-consomptibles</b> (qui disparaissent ou non par un usage normal)."}, {"id": 317, "t": 7, "q": "Distinguez acquisition originaire et acquisition dérivée de la propriété.", "a": "<b>Originaire</b> : sans prédécesseur — occupation d'une chose <b>sans maître</b>, acquisition d'une chose <b>perdue</b>, ou <b>prescription acquisitive</b> (une chose mobilière possédée <b>5 ans</b> sans être réclamée devient la propriété du possesseur).<br><b>Dérivée</b> : par <b>acte juridique</b> entre ancien et nouveau propriétaire."}, {"id": 318, "t": 7, "q": "Qu'est-ce que la déréliction ?", "a": "L'acte par lequel le propriétaire <b>abandonne volontairement</b> son droit de propriété sur une chose (la chose devient alors sans maître)."}, {"id": 319, "t": 7, "q": "Quels sont les principes du droit de gage ?", "a": "<b>Spécialité</b> : porte sur une chose précise.<br><b>Caractère accessoire</b> : disparaît dès que la dette garantie est éteinte.<br><b>Caractère subsidiaire</b> : on cherche d'abord le remboursement par d'autres voies.<br><b>Publicité</b> : doit être reconnaissable par les tiers (registre foncier / possession)."}, {"id": 320, "t": 7, "q": "Quels sont les critères de la possession (objectifs et subjectif) ?", "a": "<b>Objectifs</b> : la maîtrise de fait suppose <b>indépendance</b>, <b>exclusivité</b> et <b>durée</b>.<br><b>Subjectif</b> : le possesseur doit avoir la <b>conscience et la volonté</b> de posséder. La possession est indépendante de tout droit sur la chose."}, {"id": 321, "t": 7, "q": "Distinguez héritiers légaux et héritiers institués.", "a": "<b>Héritiers légaux</b> : désignés par la loi à raison d'un lien de parenté/conjugal, en l'absence de testament (succession « <b>ab intestat</b> »).<br><b>Héritiers institués</b> : désignés par le défunt lui-même (succession volontaire) ; ils peuvent aussi être des héritiers légaux."}, {"id": 322, "t": 7, "q": "Quelle est la part du conjoint survivant selon la parentèle avec laquelle il concourt ?", "a": "<b>1/2</b> de la succession en concours avec les <b>descendants</b> ; <b>3/4</b> en concours avec la parentèle des <b>père et mère</b> ; <b>la totalité</b> dans les autres cas. Le conjoint ne fait partie d'aucune parentèle mais est héritier légal."}, {"id": 323, "t": 7, "q": "Quelles sont les règles de répartition entre parentèles ?", "a": "Chaque <b>parentèle prime la suivante</b> (les descendants excluent les parents, etc.) ; à l'intérieur d'une parentèle, la <b>tête de souche prime ses descendants</b> ; à défaut, répartition par représentation. Le conjoint est hors parentèle."}, {"id": 324, "t": 7, "q": "Qu'est-ce que l'exhérédation ?", "a": "Les cas, prévus par la loi, où le testateur peut <b>priver un héritier de sa réserve</b> (ex. infraction grave de l'héritier contre le défunt ou un proche, manquement grave aux devoirs de famille)."}, {"id": 325, "t": 7, "q": "Quelles sont les trois formes du testament (dont la forme orale) ?", "a": "<b>Authentique</b> : devant notaire + 2 témoins.<br><b>Olographe</b> : écrit, daté et signé entièrement à la main.<br><b>Oral</b> : exceptionnel — testateur en <b>danger de mort</b> et empêché d'écrire, qui déclare ses volontés à <b>2 témoins</b>."}, {"id": 326, "t": 7, "q": "Distinguez pacte successoral positif (d'attribution) et négatif (abdicatif).", "a": "<b>Positif / d'attribution</b> : le testateur institue le cocontractant comme héritier ou légataire.<br><b>Négatif / abdicatif</b> : le cocontractant <b>renonce</b> à tout ou partie de ses droits dans la succession. (Forme authentique requise.)"}, {"id": 327, "t": 7, "q": "Comment l'héritier peut-il éviter d'assumer les dettes de la succession ?", "a": "Trois possibilités : <b>répudier</b> la succession (la refuser) ; l'accepter sous <b>bénéfice d'inventaire</b> (connaître l'actif/passif avant d'accepter) ; demander la <b>liquidation officielle</b> (la succession est liquidée comme une faillite). Jusqu'au partage, les héritiers forment une <b>hoirie</b> (communauté héréditaire)."}, {"id": 333, "t": 7, "q": "Quels sont les problèmes successifs résolus par le droit international privé ?", "a": "1) La <b>qualification</b> : de quel domaine juridique relève le rapport ?<br>2) Le <b>rattachement</b> : relier le rapport à un ordre juridique selon des critères — lieu de <b>domicile</b>, <b>situation des biens</b>, existence de <b>liens étroits</b>, <b>lieu de l'acte illicite</b>.<br>3) La <b>reconnaissance / exécution</b> d'un jugement étranger."}];
+const TITLES = ["Titre I — Notion et fonctions du droit", "Titre II — Les sujets de droit", "Titre III — La règle de droit", "Titre IV — Les sources du droit", "Titre V — Les grandes divisions du droit", "Titre VI — Le droit public", "Titre VII — Le droit privé", "Titre VIII — Les obligations en général", "Titre IX — Les sources des obligations", "Titre X — Les obligations contractuelles", "Titre XI — La responsabilité civile (délictuelle)", "Titre XII — La responsabilité contractuelle", "Titre XIII — L'enrichissement illégitime", "Titre XIV — Les modalités des obligations", "Titre XV — La transmission des obligations", "Titre XVI — L'exécution des obligations", "Titre XVII — L'extinction des obligations"];
+const STORE_KEY = 'droit_progress_v3';
+
+/* ---------- Persistent memory (localStorage) ---------- */
+function loadMem(){ try{return JSON.parse(localStorage.getItem(STORE_KEY))||{}}catch(e){return {}} }
+function saveMemRaw(){ try{localStorage.setItem(STORE_KEY, JSON.stringify(MEM))}catch(e){} }
+function saveMem(){ saveMemRaw(); schedulePush(); }
+let MEM = loadMem();
+function rec(id){ if(!MEM[id]) MEM[id]={box:0,right:0,wrong:0,seen:0,ever:0,last:0}; return MEM[id]; }
+const MAX_BOX = 5; // box>=4 => maîtrisée
+function markRight(id){ const r=rec(id); r.right++; r.seen++; r.box=Math.min(MAX_BOX-1,r.box+1); r.last=Date.now(); saveMem(); }
+function markWrong(id){ const r=rec(id); r.wrong++; r.seen++; r.ever=1; r.box=0; r.last=Date.now(); saveMem(); }
+function isMastered(id){ return (MEM[id]?.box||0) >= 4; }
+function isError(id){ const r=MEM[id]; return r && r.ever===1 && r.box<4; }
+
+const $ = id=>document.getElementById(id);
+const byT = t => CARDS.filter(c=>c.t===t);
+
+/* ---------- Filter dropdown ---------- */
+(function(){
+  const f=$('filter');
+  const all=document.createElement('option'); all.value='all';
+  all.textContent=`Tout le cours (${CARDS.length} cartes)`; f.appendChild(all);
+  TITLES.forEach((t,i)=>{ const n=byT(i+1).length; if(!n)return;
+    const o=document.createElement('option'); o.value=String(i+1);
+    o.textContent=`${t} (${n})`; f.appendChild(o); });
+})();
+
+/* ---------- Dashboard ---------- */
+function updateDash(){
+  const seen=CARDS.filter(c=>MEM[c.id]?.seen).length;
+  const mastered=CARDS.filter(c=>isMastered(c.id)).length;
+  const errors=CARDS.filter(c=>isError(c.id)).length;
+  $('cSeen').textContent=seen; $('cMastered').textContent=mastered; $('cErrors').textContent=errors;
+  const pct=Math.round(mastered/CARDS.length*100);
+  $('masteryPct').textContent=pct+'%';
+  const C=314; $('ringFg').style.strokeDashoffset = C - C*pct/100;
+  // per-titre
+  const ml=$('masteryList'); ml.innerHTML='';
+  TITLES.forEach((t,i)=>{ const cs=byT(i+1); if(!cs.length)return;
+    const m=cs.filter(c=>isMastered(c.id)).length; const p=Math.round(m/cs.length*100);
+    const row=document.createElement('div'); row.className='mrow';
+    row.innerHTML=`<div class="nm">${t}</div><div class="meta">
+      <div class="mini"><div style="width:${p}%"></div></div><div class="mpct">${p}%</div></div>`;
+    row.onclick=()=>{ $('filter').value=String(i+1); startMode('flash'); };
+    ml.appendChild(row); });
+}
+
+/* ---------- Build deck per mode ---------- */
+let MODE='flash', deck=[], idx=0, revealed=false;
+let session={right:0,wrong:0,score:0,answered:0};
+let timerInt=null, timeLeft=0;
+
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+function selectedPool(){
+  const f=$('filter').value;
+  return f==='all'?CARDS.slice():CARDS.filter(c=>String(c.t)===f);
+}
+
+function buildDeck(mode){
+  let pool;
+  if(mode==='errors'){
+    pool=CARDS.filter(c=>isError(c.id));
+  } else if(mode==='qcm'){
+    pool=selectedPool().filter(c=>c.vf);
+  } else if(mode==='smart'){
+    pool=selectedPool().slice();
+    // weight: lower box & never seen first; due cards prioritised
+    pool.sort((a,b)=>{
+      const ra=MEM[a.id]||{box:0,seen:0}, rb=MEM[b.id]||{box:0,seen:0};
+      const wa=(ra.seen?ra.box:-1), wb=(rb.seen?rb.box:-1);
+      if(wa!==wb) return wa-wb;
+      return Math.random()-.5;
+    });
+    pool=pool.slice(0, Math.min(pool.length, 30)); // session de 30 pour aller vite
+  } else { // flash
+    pool=selectedPool().slice();
+    if($('shuffle').checked) shuffle(pool);
+  }
+  if(mode!=='smart' && mode!=='qcm' && $('shuffle').checked) shuffle(pool);
+  if(mode==='qcm' && $('shuffle').checked) shuffle(pool);
+  return pool;
+}
+
+const MODE_META={
+  smart:{label:'🧠 Révision intelligente'}, errors:{label:'🎯 Mes erreurs'},
+  flash:{label:'📇 Flashcards'}, qcm:{label:'✓✗ QCM Vrai/Faux'}
+};
+
+function startMode(mode){
+  MODE=mode;
+  deck=buildDeck(mode);
+  if(!deck.length){ showEmpty(mode); return; }
+  idx=0; session={right:0,wrong:0,score:0,answered:0};
+  $('home').style.display='none'; $('result').style.display='none';
+  $('study').style.display='block';
+  $('modeLabel').textContent=MODE_META[mode].label;
+  const scope = $('filter').value==='all' ? 'Tout le cours' : TITLES[parseInt($('filter').value)-1];
+  $('studyInfo').innerHTML = mode==='errors'
+    ? `<b>${deck.length}</b> carte(s) à revoir`
+    : `${scope} · <b>${deck.length}</b> carte(s)`;
+  $('rate').style.display = mode==='qcm' ? 'none':'none';
+  // timer for qcm exam feel
+  clearInterval(timerInt);
+  if(mode==='qcm'){ timeLeft=deck.length*45; tickTimer(); timerInt=setInterval(tickTimer,1000); }
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function tickTimer(){
+  const m=Math.floor(timeLeft/60), s=timeLeft%60;
+  $('studyInfo').innerHTML=`⏱ ${m}:${String(s).padStart(2,'0')} · <b>${session.score>=0?'+':''}${session.score}</b> pts`;
+  if(timeLeft<=0){ clearInterval(timerInt); finish(); return; }
+  timeLeft--;
+}
+
+function showEmpty(mode){
+  $('home').style.display='none'; $('study').style.display='none';
+  const r=$('result'); r.style.display='block';
+  const msg = mode==='errors'
+    ? "Aucune erreur enregistrée pour l'instant. Lance une révision : les cartes ratées s'accumuleront ici."
+    : mode==='qcm'
+    ? "Aucune carte Vrai/Faux dans cette section. Choisis « Tout le cours » ou un autre Titre."
+    : "Aucune carte dans cette sélection.";
+  r.innerHTML=`<div class="empty"><div class="big">🗂️</div><p>${msg}</p>
+    <div class="actions"><button class="btn-primary" onclick="goHome()">Retour à l'accueil</button></div></div>`;
+}
+
+/* ---------- Render a card ---------- */
+function vfAnswerIsTrue(c){ return /vtrue/.test(c.a); }
+
+function render(){
+  if(idx>=deck.length){ finish(); return; }
+  const c=deck[idx]; revealed=false;
+  $('card').classList.remove('flipped');
+  $('rate').style.display='none';
+  const isVF = MODE==='qcm';
+  const label = c.vf ? `Piège · ${TITLES[c.t-1]}` : TITLES[c.t-1];
+  $('tagF').textContent=label; $('tagB').textContent=label;
+  $('tagF').classList.toggle('vf',!!c.vf); $('tagB').classList.toggle('vf',!!c.vf);
+  $('question').textContent=c.q;
+  $('answer').innerHTML=c.a;
+  // memory footer
+  const r=MEM[c.id]||{right:0,wrong:0,box:0};
+  const stars='●'.repeat(r.box)+'○'.repeat(MAX_BOX-1-r.box);
+  $('memo').innerHTML = `<span class="dot" style="color:var(--ok)">✓ ${r.right}</span>
+    <span class="dot" style="color:var(--bad)">✗ ${r.wrong}</span>
+    <span class="dot">Niveau mémoire : ${stars}</span>`;
+  $('counter').textContent=`${idx+1} / ${deck.length}`;
+  const pct=Math.round(idx/deck.length*100);
+  $('barFill').style.width=pct+'%'; $('pct').textContent=pct+' %';
+  // QCM mode vs flashcard mode
+  if(isVF){
+    $('qcmBox').style.display='flex';
+    $('frontHint').style.display='none';
+    [...$('qcmBox').children].forEach(b=>{b.disabled=false;b.style.outline='none';});
+    $('card').style.cursor='default';
+  } else {
+    $('qcmBox').style.display='none';
+    $('frontHint').style.display='block';
+    $('card').style.cursor='pointer';
+  }
+  $('prev').disabled = idx===0;
+}
+
+/* ---------- Flashcard reveal & rating ---------- */
+function reveal(){
+  if(MODE==='qcm') return;
+  if(revealed) return;
+  revealed=true; $('card').classList.add('flipped');
+  setTimeout(()=>{ $('rate').style.display='flex'; },260);
+}
+function rate(ok){
+  const c=deck[idx];
+  if(ok){ markRight(c.id); session.right++; } else { markWrong(c.id); session.wrong++; }
+  next();
+}
+/* ---------- QCM answer ---------- */
+function answerVF(userTrue){
+  const c=deck[idx];
+  const correct = vfAnswerIsTrue(c);
+  const right = (userTrue===correct);
+  if(right){ markRight(c.id); session.right++; session.score+=1; }
+  else { markWrong(c.id); session.wrong++; session.score-=0.5; }
+  session.answered++;
+  // show verdict briefly
+  [...$('qcmBox').children].forEach(b=>b.disabled=true);
+  $('card').classList.add('flipped');
+  setTimeout(()=>{ $('card').classList.remove('flipped'); next(); }, 1300);
+}
+
+function next(){ idx++; if(idx>=deck.length){ finish(); } else render(); }
+function prev(){ if(idx>0){ idx--; render(); } }
+
+/* ---------- Finish ---------- */
+function finish(){
+  clearInterval(timerInt);
+  updateDash();
+  $('study').style.display='none';
+  const r=$('result'); r.style.display='block';
+  const total=session.right+session.wrong;
+  const acc = total? Math.round(session.right/total*100):0;
+  let emoji = acc>=85?'🏆': acc>=65?'🎉': acc>=45?'💪':'📚';
+  let extra='';
+  if(MODE==='qcm'){
+    const maxPts=deck.length;
+    extra=`<div class="rstat"><b>${session.score>=0?'+':''}${session.score}</b><small>score (max ${maxPts})</small></div>`;
+  }
+  r.innerHTML=`
+    <div class="big">${emoji}</div>
+    <h2>Session terminée</h2>
+    <p>${MODE_META[MODE].label} — ${total} carte(s)</p>
+    <div class="rstats">
+      <div class="rstat"><b style="color:var(--ok)">${session.right}</b><small>réussies</small></div>
+      <div class="rstat"><b style="color:var(--bad)">${session.wrong}</b><small>ratées</small></div>
+      <div class="rstat"><b>${acc}%</b><small>réussite</small></div>
+      ${extra}
+    </div>
+    <div class="actions">
+      <button class="btn-primary" onclick="startMode('${MODE}')">↻ Recommencer</button>
+      ${session.wrong?`<button class="ghost" onclick="startMode('errors')">🎯 Réviser mes erreurs</button>`:''}
+      <button class="ghost" onclick="goHome()">Accueil</button>
+    </div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goHome(){
+  clearInterval(timerInt);
+  $('study').style.display='none'; $('result').style.display='none';
+  $('home').style.display='block'; updateDash();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- Events ---------- */
+document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>startMode(b.dataset.mode));
+$('card').onclick=reveal;
+$('again').onclick=()=>rate(false);
+$('known').onclick=()=>rate(true);
+$('next').onclick=()=>{ if(MODE!=='qcm') next(); };
+$('prev').onclick=prev;
+$('backBtn').onclick=goHome;
+$('qcmBox').querySelectorAll('button').forEach(b=>b.onclick=e=>{e.stopPropagation();answerVF(b.dataset.v==='1');});
+$('resetBtn').onclick=()=>{ if(confirm('Effacer toute ta progression et la mémoire des erreurs ?')){ MEM={}; saveMem(); updateDash(); } };
+
+/* ================= SYNC & BACKUP ================= */
+const SYNC_KEY='droit_sync_v1';
+let SYNC=(()=>{try{return JSON.parse(localStorage.getItem(SYNC_KEY))||{}}catch(e){return {}}})();
+function saveSync(){ try{localStorage.setItem(SYNC_KEY,JSON.stringify(SYNC))}catch(e){} }
+const JB='https://jsonblob.com/api/jsonBlob';
+const blobUrl=id=>JB+'/'+id;
+
+function mergeInto(target,remote){
+  if(!remote||typeof remote!=='object') return target;
+  for(const id in remote){
+    const r=remote[id]; if(!r||typeof r!=='object') continue;
+    const t=target[id];
+    if(!t){ target[id]={...r}; continue; }
+    const rl=r.last||0, tl=t.last||0;
+    target[id]={
+      right:Math.max(t.right||0,r.right||0),
+      wrong:Math.max(t.wrong||0,r.wrong||0),
+      seen:Math.max(t.seen||0,r.seen||0),
+      ever:Math.max(t.ever||0,r.ever||0),
+      box: rl>tl ? (r.box||0) : (t.box||0),
+      last: Math.max(rl,tl)
+    };
+  }
+  return target;
+}
+function syncMsg(t,ok){ const m=$('cloudMsg'); m.textContent=t; m.className='msg '+(ok?'ok':'err'); }
+function ioMsg(t,ok){ const m=$('ioMsg'); m.textContent=t; m.className='msg '+(ok?'ok':'err'); }
+
+async function cloudCreate(){
+  syncMsg('Création de l\'espace cloud…',true);
+  try{
+    const r=await fetch(JB,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(MEM)});
+    const loc=r.headers.get('Location'); if(!loc) throw new Error('no-location');
+    SYNC.id=loc.split('/').pop(); saveSync(); renderSync();
+    syncMsg('Synchro activée ✓ Copie ton code et saisis-le sur l\'autre appareil.',true);
+  }catch(e){ syncMsg('Synchro cloud indisponible (réseau ou navigateur). Utilise l\'export/import manuel.',false); }
+}
+async function cloudConnect(raw){
+  const id=(raw||'').trim().replace(/.*\//,'');
+  if(!id){ syncMsg('Entre d\'abord un code.',false); return; }
+  syncMsg('Connexion…',true);
+  try{
+    const r=await fetch(blobUrl(id)); if(!r.ok) throw 0;
+    const remote=await r.json();
+    MEM=mergeInto(MEM,remote); saveMemRaw();
+    SYNC.id=id; saveSync();
+    await cloudPush(true); renderSync(); updateDash();
+    syncMsg('Connecté et fusionné ✓ Les deux appareils partagent la même progression.',true);
+  }catch(e){ syncMsg('Code introuvable ou réseau indisponible.',false); }
+}
+let pushT=null;
+function schedulePush(){ if(!SYNC.id) return; clearTimeout(pushT); pushT=setTimeout(()=>cloudPush(),1400); }
+async function cloudPush(silent){
+  if(!SYNC.id) return;
+  try{ await fetch(blobUrl(SYNC.id),{method:'PUT',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(MEM)});
+    if(!silent) syncMsg('Sauvegardé dans le cloud ✓',true);
+  }catch(e){ if(!silent) syncMsg('Échec de la sauvegarde cloud.',false); }
+}
+async function cloudPull(){
+  if(!SYNC.id) return;
+  try{ const r=await fetch(blobUrl(SYNC.id)); if(!r.ok) return;
+    const remote=await r.json(); MEM=mergeInto(MEM,remote); saveMemRaw(); updateDash();
+  }catch(e){}
+}
+function renderSync(){
+  const on=!!SYNC.id;
+  $('syncStatus').innerHTML = on
+    ? `Statut : <b style="color:var(--ok)">activée</b> · ton code : <span class="code">${SYNC.id}</span>`
+    : `Statut : <b style="color:var(--bad)">désactivée</b> sur cet appareil`;
+  $('cloudEnable').style.display=on?'none':'inline-block';
+  $('cloudCopy').style.display=on?'inline-block':'none';
+  $('cloudOff').style.display=on?'inline-block':'none';
+}
+function exportCode(){ return btoa(unescape(encodeURIComponent(JSON.stringify(MEM)))); }
+function importCode(code){
+  try{ const json=JSON.parse(decodeURIComponent(escape(atob((code||'').trim()))));
+    MEM=mergeInto(MEM,json); saveMemRaw(); updateDash(); schedulePush(); ioMsg('Importé et fusionné ✓',true);
+  }catch(e){ ioMsg('Code invalide.',false); }
+}
+
+/* sync events */
+$('syncBtn').onclick=()=>{ const p=$('syncPanel'); const vis=p.style.display==='block';
+  p.style.display=vis?'none':'block'; if(!vis){ renderSync(); p.scrollIntoView({behavior:'smooth',block:'center'}); } };
+$('cloudEnable').onclick=cloudCreate;
+$('cloudConnect').onclick=()=>cloudConnect($('cloudCodeIn').value);
+$('cloudCopy').onclick=()=>{ try{navigator.clipboard.writeText(SYNC.id);}catch(e){} syncMsg('Code copié ✓',true); };
+$('cloudOff').onclick=()=>{ if(confirm('Déconnecter la synchro cloud sur cet appareil ? (ta progression locale est conservée)')){ SYNC={}; saveSync(); renderSync(); syncMsg('Déconnecté.',true); } };
+$('expCopy').onclick=()=>{ const c=exportCode(); try{navigator.clipboard.writeText(c);}catch(e){} $('impText').value=c; ioMsg('Code copié dans le presse-papier ✓',true); };
+$('expFile').onclick=()=>{ const blob=new Blob([JSON.stringify(MEM,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='progression-droit.json'; a.click(); };
+$('impFile').onclick=()=>$('fileIn').click();
+$('fileIn').onchange=e=>{ const f=e.target.files[0]; if(!f)return; const rd=new FileReader();
+  rd.onload=()=>{ try{ MEM=mergeInto(MEM,JSON.parse(rd.result)); saveMemRaw(); updateDash(); schedulePush(); ioMsg('Fichier importé ✓',true); }catch(err){ ioMsg('Fichier invalide.',false); } };
+  rd.readAsText(f); };
+$('impTextBtn').onclick=()=>importCode($('impText').value);
+
+document.addEventListener('keydown',e=>{
+  if($('study').style.display!=='block') return;
+  if(MODE==='qcm'){
+    if(e.key==='v'||e.key==='V'){answerVF(true);} if(e.key==='f'||e.key==='F'){answerVF(false);}
+    return;
+  }
+  if(e.code==='Space'){ e.preventDefault(); revealed?null:reveal(); }
+  else if(e.key==='1'&&revealed){ rate(false); }
+  else if(e.key==='2'&&revealed){ rate(true); }
+  else if(e.key==='ArrowRight'){ next(); }
+  else if(e.key==='ArrowLeft'){ prev(); }
+});
+
+updateDash();
+renderSync();
+cloudPull();
+</script>
+</body>
+</html>
